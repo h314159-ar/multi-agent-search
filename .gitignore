@@ -1,0 +1,17 @@
+# 密钥（绝不提交）
+.env
+
+# Python 运行环境
+dsp/
+__pycache__/
+*.pyc
+
+# 数据（不入库，太大且可再生）
+data/
+
+# IDE
+.idea/
+
+# 系统
+Thumbs.db
+.DS_Store

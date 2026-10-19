@@ -7,6 +7,9 @@ r"""W2 第 3 步：数据检索 Agent v1
 import os
 
 import duckdb
+from dotenv import load_dotenv
+
+load_dotenv()   # 从项目根 .env 读取 DEEPSEEK_API_KEY，不再依赖环境变量配置
 from typing import Annotated
 from typing_extensions import TypedDict
 from langchain_openai import ChatOpenAI
