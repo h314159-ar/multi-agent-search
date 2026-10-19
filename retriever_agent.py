@@ -1,4 +1,4 @@
-"""W2 第 3 步：数据检索 Agent v1
+r"""W2 第 3 步：数据检索 Agent v1
 = quickstart 的图结构 + 换工具（run_sql）+ 注入数据字典（system prompt）
 运行方式：先设 key 再跑（同一个终端）
     $env:DEEPSEEK_API_KEY="sk-..."
