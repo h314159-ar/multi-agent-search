@@ -1,0 +1,25 @@
+﻿case_id,mode,actual_backend,question,relevant_docs,top1,top3,top1_hit,recall_at_3,mrr
+Q1,tfidf,tfidf,为什么 K-Means 选 K=2？,kmeans_result|kmeans_method,kmeans_result,kmeans_result|kmeans_method|leakage_guard,1,1.0,1.0
+Q2,tfidf,tfidf,关联规则怎么构建事务？,apriori_method,apriori_result,apriori_result|apriori_method|group_rules,0,1.0,0.5
+Q3,tfidf,tfidf,决策树的准确率是多少？,decision_tree,decision_tree,decision_tree|leakage_guard|architecture,1,1.0,1.0
+Q4,tfidf,tfidf,ratings 表有哪些字段？,schema_ratings,schema_ratings,schema_ratings|leakage_guard|kmeans_method,1,1.0,1.0
+Q5,tfidf,tfidf,并行分支同时写 State 冲突怎么解决？,w5_orchestration|architecture,w5_orchestration,w5_orchestration|architecture|schema_ratings,1,1.0,1.0
+Q6,tfidf,tfidf,给我一份用户偏好模式简报，并说明挖掘方法。,kmeans_result|apriori_result|decision_tree|w5_orchestration,apriori_method,apriori_method|kmeans_result|leakage_guard,0,0.25,0.5
+Q7,tfidf,tfidf,评分严格度能否由用户行为预测？,decision_tree|leakage_guard,decision_tree,decision_tree|schema_ratings|eda_longtail,1,0.5,1.0
+Q8,tfidf,tfidf,为什么 evidences 需要 reducer？,w5_orchestration|architecture,w5_orchestration,w5_orchestration|apriori_result|apriori_method,1,0.5,1.0
+Q1,semantic,semantic,为什么 K-Means 选 K=2？,kmeans_result|kmeans_method,kmeans_method,kmeans_method|kmeans_result|eda_longtail,1,1.0,1.0
+Q2,semantic,semantic,关联规则怎么构建事务？,apriori_method,apriori_method,apriori_method|apriori_result|group_rules,1,1.0,1.0
+Q3,semantic,semantic,决策树的准确率是多少？,decision_tree,decision_tree,decision_tree|leakage_guard|schema_ratings,1,1.0,1.0
+Q4,semantic,semantic,ratings 表有哪些字段？,schema_ratings,schema_ratings,schema_ratings|schema_movies|w5_orchestration,1,1.0,1.0
+Q5,semantic,semantic,并行分支同时写 State 冲突怎么解决？,w5_orchestration|architecture,w5_orchestration,w5_orchestration|group_rules|apriori_method,1,0.5,1.0
+Q6,semantic,semantic,给我一份用户偏好模式简报，并说明挖掘方法。,kmeans_result|apriori_result|decision_tree|w5_orchestration,leakage_guard,leakage_guard|decision_tree|apriori_method,0,0.25,0.5
+Q7,semantic,semantic,评分严格度能否由用户行为预测？,decision_tree|leakage_guard,decision_tree,decision_tree|kmeans_result|apriori_method,1,0.5,1.0
+Q8,semantic,semantic,为什么 evidences 需要 reducer？,w5_orchestration|architecture,leakage_guard,leakage_guard|kmeans_method|w5_orchestration,0,0.5,0.3333333333333333
+Q1,hybrid,hybrid,为什么 K-Means 选 K=2？,kmeans_result|kmeans_method,kmeans_result,kmeans_result|kmeans_method|eda_longtail,1,1.0,1.0
+Q2,hybrid,hybrid,关联规则怎么构建事务？,apriori_method,apriori_method,apriori_method|apriori_result|group_rules,1,1.0,1.0
+Q3,hybrid,hybrid,决策树的准确率是多少？,decision_tree,decision_tree,decision_tree|leakage_guard|schema_ratings,1,1.0,1.0
+Q4,hybrid,hybrid,ratings 表有哪些字段？,schema_ratings,schema_ratings,schema_ratings|leakage_guard|schema_movies,1,1.0,1.0
+Q5,hybrid,hybrid,并行分支同时写 State 冲突怎么解决？,w5_orchestration|architecture,w5_orchestration,w5_orchestration|architecture|leakage_guard,1,1.0,1.0
+Q6,hybrid,hybrid,给我一份用户偏好模式简报，并说明挖掘方法。,kmeans_result|apriori_result|decision_tree|w5_orchestration,leakage_guard,leakage_guard|decision_tree|apriori_method,0,0.25,0.5
+Q7,hybrid,hybrid,评分严格度能否由用户行为预测？,decision_tree|leakage_guard,decision_tree,decision_tree|kmeans_result|apriori_method,1,0.5,1.0
+Q8,hybrid,hybrid,为什么 evidences 需要 reducer？,w5_orchestration|architecture,w5_orchestration,w5_orchestration|leakage_guard|kmeans_method,1,0.5,1.0

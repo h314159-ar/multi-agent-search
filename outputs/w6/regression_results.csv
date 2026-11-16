@@ -1,0 +1,77 @@
+﻿id,question,expected_routes,actual_routes,route_ok,verdict,hard_check,missing_facts,elapsed_seconds,passed,final,error
+R01,评分超过 4.0 且至少有 100 人评价的电影有哪些？,sql,sql,True,PASS,PASS,,6.671,True,"共有 47 部电影满足“评分 > 4.0 且评价人数 ≥ 100”。按平均分排序前 12 名如下：
+
+1. Shawshank Redemption, The (1994)：317 人，4.429
+2. Godfather, The (1972)：192 人，4.289
+3. Fight Club (1999)：218 人，4.273
+4. Godfather: Part II, The (1974)：129 人，4.260
+5. Departed, The (2006)：107 人，4.252
+6. Goodfellas (1990)：126 人，4.250
+7. Casablanca (1942)：100 人，4.240
+8. Dark Knight, The (2008)：149 人，4.238
+9. Usual Suspects, The (1995)：204 人，4.238
+10. Princess Bride, The (1987)：142 人，4.232
+11. Star Wars: Episode IV - A New Hope (1977)：251 人，4.231
+12. Schindler's List (1993)：220 人，4.225
+
+以上仅为部分结果，完整名单共 47 部。",
+R02,评价人数最多的 10 部电影是哪些？请给出评价人数和平均评分。,sql,sql,True,PASS,PASS,,7.346,True,评价人数最多的10部电影（括号内为评价人数、平均评分）：1.《阿甘正传》（329、4.16）；2.《肖申克的救赎》（317、4.43）；3.《低俗小说》（307、4.20）；4.《沉默的羔羊》（279、4.16）；5.《黑客帝国》（278、4.19）；6.《星球大战4：新希望》（251、4.23）；7.《侏罗纪公园》（238、3.75）；8.《勇敢的心》（237、4.03）；9.《终结者2：审判日》（224、3.97）；10.《辛德勒的名单》（220、4.22）。其中《阿甘正传》评价人数最多，《肖申克的救赎》平均评分最高；前10名中8部平均分在4.0以上。,
+R03,Comedy 类型电影中，平均评分最高且评价人数不少于 50 的 5 部是哪些？,sql,sql,True,PASS,PASS,,6.486,True,"Comedy 类型中，评价人数不少于 50 且平均评分最高的 5 部电影为：
+
+1. Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb (1964)，平均评分 4.268，评价人数 97
+2. Princess Bride, The (1987)，平均评分 4.232，评价人数 142
+3. Pulp Fiction (1994)，平均评分 4.197，评价人数 307
+4. Amelie (Fabuleux destin d'Amélie Poulain, Le) (2001)，平均评分 4.183，评价人数 120
+5. Forrest Gump (1994)，平均评分 4.164，评价人数 329
+
+以上按平均评分降序排列；评分相同时以评价人数多者优先。",
+R04,用户分群的结果怎么样？喜欢科幻片的人还喜欢什么类型？,mining,mining,True,PASS,PASS,,9.245,True,"**结论：用户结构高度倾斜，近九成为轻度用户；科幻片爱好者主要还喜欢动作片。**
+
+**分群结果**：K-Means 取 K=2（轮廓系数 0.4077）。轻度用户 532 人，占 87.2%，平均评分 106.9 条、活跃 1.07 年、均分 3.669；重度用户 78 人，占 12.8%，平均评分 563.9 条、活跃 5.56 年、均分 3.579。重度用户行为强度约为轻度用户的 5.3 倍，活跃年限约为 5.2 倍，但打分更挑剔。
+
+**科幻偏好**：规则 Sci-Fi → Action 支持度 0.0657、置信度 80.0%、提升度 1.68，即喜欢科幻的用户中 80% 也喜欢动作片，共现强度是随机情况的 1.68 倍。该组合支持度仅 6.6%，属相对小众偏好，可考虑科幻与动作打包推荐。",
+R05,决策树预测宽容型评分者的准确率是多少？最重要的特征是什么？,mining,mining|rag,True,PASS,PASS,,6.309,True,"**结论**：决策树预测“宽容型评分者”的5折交叉验证准确率为70.3%±1.7%，独立测试集为66.4%（n=122）；最重要特征是std_rating（评分标准差），重要性0.58。
+
+**细节**：
+- 多数类基线65.2%，交叉验证较基线提升约5个百分点；测试集低于交叉验证，泛化能力一般。
+- 特征重要性排序：std_rating 0.58（绝对主导）、log_n_ratings 0.30、first_year 0.11。
+- 模型规模：树深4，叶节点14。
+- 可解释规律：评分波动大、评分数量多的用户更倾向严格型。
+- 局限：仅用行为特征解释力有限，缺少“品味/偏好”维度，准确率难以大幅提升。",
+R06,重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？,mining,mining|rag,True,PASS,PASS,,10.953,True,"**结论：两组规则结构大体一致，差异主要在置信度与独有规则簇。**
+
+**跨组稳定规则（6条）**：Romance→Comedy+Drama、Romance→Comedy、Drama+Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama。两组支持度差异多在0.01–0.03内，lift均>1，可作通用推荐逻辑。
+
+**差异**：重度组置信度更高，如Romance→Comedy为1.000（轻度0.811），行为更“成套”；并有Crime复合规则族（如Comedy+Crime→Drama置信度1.000）。轻度组独有Thriller系规则（如Crime+Thriller→Drama），且Sci-Fi→Action的lift更高（1.74 vs 1.33）。
+
+**注意**：两组各13条规则；重度组仅78人，每条规则5–14人支撑，属小样本探索性发现。",
+R07,为什么 K-Means 选 K=2？PCA 为什么不参与聚类训练？,rag,rag,True,PASS,PASS,,6.207,True,"**结论：** K=2 因轮廓系数最高且 K=1 无意义；PCA 仅用于可视化，不参与聚类训练。
+
+**K-Means 选 K=2：** 在 K=2 到 8 范围内，K=2 的轮廓系数为 0.4077，是最高的；K 的下界为 2，因为 K=1 无聚类意义且轮廓系数无法定义。
+
+**PCA 不参与聚类训练：** PCA 只用于把 4 维特征投影到 2 维做可视化，不参与训练；先降维再聚类会丢失低方差但有区分度的维度，且聚类中心会失去业务可解释性。",
+R08,关联规则里的 lift 和 support 怎么理解？为什么不能只看 confidence？,rag,rag,True,PASS,PASS,,7.856,True,"**结论**：support 看规则覆盖有多普遍，lift 看前后项是否真正正相关；confidence 高可能只是后项本身热门，所以不能只看 confidence。
+
+**support（支持度）**：文档在 min_support=0.05 下挖出 13 条规则（lift>1 且 confidence>=0.5）。支撑人数 = support × 事务数 609，如 Romance→Comedy+Drama 有 83 人支撑，Sci-Fi→Action 有 40 人。文档提到 v1 定义下主流类型 support 超 95%、没有区分度，改为 top-3 偏好签名后 support 梯度才拉开，说明 support 过高往往缺乏区分度。
+
+**lift（提升度）**：lift = confidence / P(B)，大于 1 才是正相关。如 Romance→Comedy+Drama 的 confidence 为 0.78、lift 为 1.79；Sci-Fi→Action 为 0.80、1.68；Crime→Drama 为 0.94、1.21。
+
+**为何不能只看 confidence**：文档说明规则按 lift 而非 confidence 排序，因为高 confidence 可能只是后项本身热门，需结合 lift 是否大于 1 判断真正正相关。",
+R09,LangGraph 并行分支写同一个 State 字段为什么会冲突？reducer 怎么解决？,rag,rag,True,PASS,PASS,,4.685,True,"**结论**：LangGraph 中多个并行分支写同一个 State 字段会触发 InvalidUpdateError，这就是冲突；用 reducer 可解决。
+
+**细节**：
+- State 是共享字典，Node 是 Agent，条件边是路由规则。
+- 解决办法是使用 reducer：evidences 用字典合并 reducer，trace 用 operator.add 列表累加，且每个分支只返回增量。
+- 文档未说明 reducer 的底层实现机制。",
+R10,给我一份关于 MovieLens 用户偏好模式的简报，并说明挖掘方法。,mining|rag,mining|rag,True,PASS,PASS,,11.325,True,"**结论**：MovieLens 用户以轻度、短期、中等评分为主体，类型偏好呈双簇结构，评分宽严主要由评分波动驱动。
+
+**数据基础**：100,836 条评分、610 名用户、9,742 部电影，稀疏度 98.30%，时间跨度 1996-03-29 至 2018-09-24。
+
+**偏好模式**：
+- K-Means（K=2，轮廓系数 0.4077）：轻度用户 532 人（87.2%），重度用户 78 人（12.8%）；重度用户人均评分数为轻度用户的 5.3 倍，活跃年数约 5.2 倍，两类平均评分接近（3.669 vs 3.579）。
+- Apriori（min_support=0.05，609 条事务）：最强规则 Romance→Comedy+Drama（support 0.136，confidence 0.776，lift 1.789）；Drama 为枢纽类型，情感向与刺激向偏好基本不交叉。
+- 决策树（树深 4）：5 折交叉验证准确率 70.3%±1.7%，基线 65.2%；特征重要性 std_rating 0.58 > log_n_ratings 0.30 > first_year 0.11。
+
+**方法**：K-Means 聚类、Apriori 关联规则、决策树分类（目标 mean_rating≥3.5）。
+
+**局限**：轮廓系数中等偏弱；决策树仅提升约 5pp；关联规则 support 偏低；重度用户样本仅 78 人。",

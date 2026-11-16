@@ -1,23 +1,33 @@
-r"""W5 · RAG 知识库与检索器
+r"""W6 · RAG 知识库与可切换检索器
 
-知识来源：W1-W4 已验证的项目结论（数据字典 / 算法结果 / 方法论），
-每条文档都对应一次真实实验，保证 RAG 回答可被追溯、不被 LLM 编造。
+知识来源：W1-W5 已验证的项目结论，每条文档都对应一次真实实验。
 
-检索方案：TF-IDF + 字符 n-gram（analyzer="char_wb", ngram_range=(2,4)）。
-说明：DeepSeek 不提供 embeddings API，且中文按字 n-gram 无需分词、
-离线可复现；对本项目 12 条小规模领域文档，TF-IDF 与向量检索效果相当。
+检索后端：
+- tfidf：TF-IDF + 字符 n-gram，W5 基线。
+- semantic：本地 BGE 中文向量（BAAI/bge-small-zh-v1.5）。
+- hybrid：语义得分与 TF-IDF 得分加权融合，兼顾语义与专有名词精确匹配。
+
+模型首次加载需联网下载，之后使用本地缓存；加载失败会明确记录原因并
+回退 TF-IDF，不会把回退结果伪装成语义检索。
 
 运行：dsp\Scripts\python src/rag/knowledge_base.py
 """
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_MODEL = "BAAI/bge-small-zh-v1.5"
+LOCAL_MODEL_DIR = ROOT / "models" / "bge-small-zh-v1.5"
+# 已从 hf-mirror 预下载到本地时直接离线加载，避免运行时依赖网络
+MODEL_NAME = str(LOCAL_MODEL_DIR) if (LOCAL_MODEL_DIR / "model.safetensors").exists() \
+    else DEFAULT_MODEL
+QUERY_INSTRUCTION = "为这个句子生成表示以用于检索相关文章："
 
-# ── 知识库：每条 = (文档ID, 主题, 正文)。正文全部来自 W1-W4 实测结论 ──
+# ── 知识库：每条 = (文档ID, 主题, 正文)。正文全部来自实测结论 ──
 DOCUMENTS: list[tuple[str, str, str]] = [
     ("dataset_overview", "数据集概况",
      "MovieLens ml-latest-small 数据集：100,836 条评分，610 名用户，9,742 部电影，"
@@ -87,23 +97,66 @@ DOCUMENTS: list[tuple[str, str, str]] = [
      "Synthesizer 综合多源证据生成报告、Critic 审查数据支撑与逻辑。"
      "LangGraph 中 State 是共享字典，Node 是 Agent，条件边是路由规则。"
      "工具调用结果必须包成带 tool_call_id 的 ToolMessage 才能配对回 assistant。"),
+    ("w5_orchestration", "W5 编排层实现与踩坑",
+     "W5 用 LangGraph 把六角色组成完整系统。Planner 输出 JSON 路由，条件边按路由扇出；"
+     "多个专家写同一个 State 字段会触发 InvalidUpdateError，因此 evidences 使用字典合并 "
+     "reducer，trace 使用 operator.add 列表累加，每个分支只返回增量。"
+     "RAG 先做查询重写，再把综合长问题拆成 1 到 3 个子查询分别检索，按 doc_id 合并最高分。"
+     "Synthesizer 只能根据专家证据写作，禁止新增数字；Critic 不通过则带意见回流，"
+     "最多修订 1 次以防无限循环。W5 的扇出是逻辑并行，同步 SDK 下物理上仍串行。"),
 ]
 
 
 class KnowledgeBase:
-    """TF-IDF 检索器：fit 一次，多次 retrieve。"""
+    """可切换 TF-IDF / 本地语义向量 / 混合检索；向量只编码一次。"""
 
-    def __init__(self, documents: list[tuple[str, str, str]] = DOCUMENTS):
+    def __init__(self, documents: list[tuple[str, str, str]] = DOCUMENTS,
+                 mode: str = "hybrid", model_name: str = MODEL_NAME,
+                 embedder=None, allow_fallback: bool = True):
+        if mode not in ("tfidf", "semantic", "hybrid"):
+            raise ValueError(f"未知检索模式: {mode}")
         self.ids = [d[0] for d in documents]
         self.topics = [d[1] for d in documents]
         self.texts = [f"{d[1]}。{d[2]}" for d in documents]
         self.vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 4))
         self.matrix = self.vectorizer.fit_transform(self.texts)
+        self.requested_mode = mode
+        self.mode = "tfidf"
+        self.model_name = model_name
+        self.embedder = None
+        self.doc_embeddings = None
+        self.fallback_reason = ""
+
+        if mode in ("semantic", "hybrid"):
+            try:
+                if embedder is None:
+                    from sentence_transformers import SentenceTransformer
+                    embedder = SentenceTransformer(model_name)
+                self.embedder = embedder
+                self.doc_embeddings = np.asarray(embedder.encode(
+                    self.texts, normalize_embeddings=True, show_progress_bar=False))
+                self.mode = mode
+            except Exception as exc:
+                self.fallback_reason = f"{type(exc).__name__}: {exc}"
+                if not allow_fallback:
+                    raise
 
     def retrieve(self, query: str, top_k: int = 3) -> pd.DataFrame:
         """返回 top_k 条文档：doc_id / topic / score / text。"""
         q = self.vectorizer.transform([query])
-        scores = cosine_similarity(q, self.matrix).ravel()
+        lexical = cosine_similarity(q, self.matrix).ravel()
+        if self.mode in ("semantic", "hybrid"):
+            query_embedding = np.asarray(self.embedder.encode(
+                [QUERY_INSTRUCTION + query], normalize_embeddings=True,
+                show_progress_bar=False))
+            semantic = cosine_similarity(query_embedding, self.doc_embeddings).ravel()
+            if self.mode == "semantic":
+                scores = semantic
+            else:
+                # 语义为主，保留字面得分以照顾算法名、字段名等精确匹配。
+                scores = 0.35 * lexical + 0.65 * semantic
+        else:
+            scores = lexical
         order = scores.argsort()[::-1][:top_k]
         return pd.DataFrame({
             "doc_id": [self.ids[i] for i in order],
@@ -115,11 +168,16 @@ class KnowledgeBase:
 
 if __name__ == "__main__":
     kb = KnowledgeBase()
-    print(f"知识库：{len(kb.ids)} 条文档 | TF-IDF 特征维度：{kb.matrix.shape[1]}")
+    print(f"知识库：{len(kb.ids)} 条文档 | 请求模式：{kb.requested_mode} | "
+          f"实际模式：{kb.mode}")
+    if kb.fallback_reason:
+        print(f"语义模型回退原因：{kb.fallback_reason}")
+    print(f"TF-IDF 特征维度：{kb.matrix.shape[1]}")
     for q in ["为什么 K-Means 选 K=2？",
               "关联规则怎么构建事务？",
               "决策树的准确率是多少？",
-              "ratings 表有哪些字段？"]:
+              "ratings 表有哪些字段？",
+              "并行分支写 State 冲突怎么解决？"]:
         print(f"\n问：{q}")
         hits = kb.retrieve(q, top_k=2)
         for _, r in hits.iterrows():

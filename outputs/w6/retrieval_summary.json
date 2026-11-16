@@ -1,0 +1,29 @@
+{
+  "model": "BAAI/bge-small-zh-v1.5",
+  "document_count": 13,
+  "query_count": 8,
+  "semantic_error": "",
+  "summary": [
+    {
+      "mode": "tfidf",
+      "actual_backend": "tfidf",
+      "top1_accuracy": 0.75,
+      "recall_at_3": 0.7812,
+      "mrr": 0.875
+    },
+    {
+      "mode": "semantic",
+      "actual_backend": "semantic",
+      "top1_accuracy": 0.75,
+      "recall_at_3": 0.7188,
+      "mrr": 0.8542
+    },
+    {
+      "mode": "hybrid",
+      "actual_backend": "hybrid",
+      "top1_accuracy": 0.875,
+      "recall_at_3": 0.7812,
+      "mrr": 0.9375
+    }
+  ]
+}
