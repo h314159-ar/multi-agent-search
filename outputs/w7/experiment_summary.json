@@ -1,0 +1,54 @@
+{
+  "generated_at": "2026-11-22T22:24:30+08:00",
+  "model": "deepseek-chat",
+  "temperature": 0,
+  "case_ids": [
+    "R01",
+    "R02",
+    "R03",
+    "R04",
+    "R05",
+    "R06",
+    "R07",
+    "R08",
+    "R09",
+    "R10",
+    "R11",
+    "R12",
+    "R13"
+  ],
+  "modes": [
+    "single",
+    "multi_serial",
+    "multi_parallel"
+  ],
+  "rag_backend": "hybrid",
+  "wall_seconds_including_judges": 268.11,
+  "acceptance": {
+    "objective_pass": "必需工具/路由覆盖 + 原始工具结果数字硬校验通过 + 关键事实命中；题目数字属于合法来源",
+    "overall_pass": "objective_pass + 同一外部 LLM 评审 PASS",
+    "elapsed_seconds": "不含外部评审耗时"
+  },
+  "limitations": [
+    "每题每模式运行一次，耗时受 API 波动影响，不做统计显著性推断",
+    "外部 LLM 评审用于语义复核，不替代人工抽查或确定性事实检查"
+  ],
+  "paired_parallel": {
+    "paired_cases": 13,
+    "parallel_faster_cases": 11,
+    "mean_speedup_per_case": 1.293,
+    "ratio_of_mean_times": 1.353,
+    "mean_time_reduction_pct": 16.95,
+    "aggregate_time_reduction_pct": 26.07,
+    "multi_route_cases": [
+      "R10",
+      "R11",
+      "R12",
+      "R13"
+    ],
+    "multi_route_parallel_faster_cases": 4,
+    "multi_route_mean_speedup": 1.464,
+    "multi_route_ratio_of_mean_times": 1.416,
+    "multi_route_aggregate_time_reduction_pct": 29.38
+  }
+}

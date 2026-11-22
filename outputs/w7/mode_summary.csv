@@ -1,0 +1,4 @@
+﻿mode,mode_label,cases,objective_pass,objective_pass_rate,judge_pass,overall_pass,overall_pass_rate,capability_pass,hard_check_pass,mean_seconds,median_seconds,total_seconds,mean_revisions
+single,单 Agent,13,5,0.3846,13,5,0.3846,11,6,2.256,2.06,29.333,0.0
+multi_serial,多 Agent 串行,13,6,0.4615,13,6,0.4615,13,6,8.928,8.053,116.069,0.0
+multi_parallel,多 Agent 并行,13,5,0.3846,13,5,0.3846,13,5,6.601,5.661,85.812,0.0

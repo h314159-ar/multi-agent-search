@@ -12,6 +12,7 @@ W6 改造：
    能在专家证据中找到（忽略千分位差异）。未通过则 REVISE；最多修订
    1 次，仍未通过则 FAIL，不再默认放行。
 3. 运行结果与并行耗时对比写入 outputs/w6/。
+4. W7 起额外保留原始工具证据，供外部实验直接审计，不改变内部回答流程。
 
 运行：dsp\Scripts\python multi_agent.py   （key 从 .env 自动读取）
 """
@@ -60,6 +61,7 @@ class State(TypedDict):
     question: str
     routes: list[str]
     evidences: Annotated[dict, merge_dict]
+    tool_evidences: Annotated[dict, merge_dict]           # 原始工具证据（实验审计用）
     draft: str
     verdict: str                                       # PASS / REVISE / FAIL
     critique: str
@@ -116,22 +118,25 @@ Romance Sci-Fi Thriller War Western)，9742 行，title 为英文。
 工具若注明「仅展示部分」，展示行数不等于结果总数；需要总数时必须用 COUNT 查询。"""
 
 
-async def tool_loop(messages: list, tools: list, max_rounds: int = 4) -> tuple[str, list[str]]:
-    """异步 LLM + 工具循环；本地阻塞工具放入线程，避免卡住其他专家。"""
+async def tool_loop(messages: list, tools: list, max_rounds: int = 4) -> tuple[str, list[str], list[str]]:
+    """异步 LLM + 工具循环；同时保留未经专家改写的原始工具证据。"""
     bound = llm.bind_tools(tools)
     tool_map = {t.name: t for t in tools}
     log = []
+    raw_evidences = []
     for _ in range(max_rounds):
         resp = await bound.ainvoke(messages)
         messages.append(resp)
         if not resp.tool_calls:
-            return resp.content, log
+            return resp.content, log, raw_evidences
         for call in resp.tool_calls:
             args_str = json.dumps(call["args"], ensure_ascii=False)
             log.append(f"{call['name']}({args_str[:150]})")
             result = await asyncio.to_thread(tool_map[call["name"]].invoke, call["args"])
-            messages.append(ToolMessage(content=str(result), tool_call_id=call["id"]))
-    return "（工具轮次用尽）" + messages[-1].content, log
+            result = str(result)
+            raw_evidences.append(f"【{call['name']}】\n{result}")
+            messages.append(ToolMessage(content=result, tool_call_id=call["id"]))
+    return "（工具轮次用尽）" + messages[-1].content, log, raw_evidences
 
 
 # ───────────────────────────── 节点 ─────────────────────────────
@@ -165,8 +170,9 @@ def route_selector(state: State) -> list[str]:
 async def sql_agent(state: State) -> dict:
     msgs = [SystemMessage(content=DATA_DICT),
             HumanMessage(content=state["question"])]
-    answer, log = await tool_loop(msgs, [run_sql])
+    answer, log, raw = await tool_loop(msgs, [run_sql])
     return {"evidences": {"sql": answer},
+            "tool_evidences": {"sql": "\n\n".join(raw)},
             "trace": [f"[检索Agent] 工具调用: {'; '.join(log) or '无'}",
                       f"[检索Agent] 证据: {answer[:200]}..."]}
 
@@ -176,9 +182,10 @@ async def mining_agent(state: State) -> dict:
         "你是数据挖掘 Agent。根据用户问题选择合适的工具获取挖掘结论，"
         "可多次调用不同工具，最后用中文总结证据（保留关键数字）。")),
         HumanMessage(content=state["question"])]
-    answer, log = await tool_loop(msgs, [cluster_profiles, association_rules,
-                                         decision_tree_summary])
+    answer, log, raw = await tool_loop(msgs, [cluster_profiles, association_rules,
+                                              decision_tree_summary])
     return {"evidences": {"mining": answer},
+            "tool_evidences": {"mining": "\n\n".join(raw)},
             "trace": [f"[挖掘Agent] 工具调用: {'; '.join(log) or '无'}",
                       f"[挖掘Agent] 证据: {answer[:200]}..."]}
 
@@ -206,6 +213,7 @@ async def rag_agent(state: State) -> dict:
         "结尾标注引用的 doc_id。文档没有的内容明确说不知道，禁止编造。")),
         HumanMessage(content=f"问题：{state['question']}\n\n{context}")])
     return {"evidences": {"rag": resp.content},
+            "tool_evidences": {"rag": context},
             "trace": [f"[RAG Agent] 子查询: {' | '.join(queries)}",
                       f"[RAG Agent] 检索后端: {kb.mode} | 召回文档: {cited}（得分 "
                       f"{'/'.join(str(s) for s in hits['score'])}）",
@@ -323,7 +331,7 @@ app = graph.compile()
 
 
 def initial_state(question: str) -> dict:
-    return {"question": question, "routes": [], "evidences": {},
+    return {"question": question, "routes": [], "evidences": {}, "tool_evidences": {},
             "draft": "", "verdict": "", "critique": "", "hard_check": "",
             "revision_count": 0, "final": "", "elapsed_seconds": 0.0, "trace": []}
 
