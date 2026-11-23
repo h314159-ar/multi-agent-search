@@ -1,0 +1,4 @@
+﻿case_id,mode,mode_label,runs,overall_pass_count,overall_pass_rate,objective_pass_count,hard_pass_count,judge_pass_count,capability_pass_count,error_count,median_seconds,mean_seconds,std_seconds,min_seconds,max_seconds
+R06,multi_parallel,多 Agent 并行,8,6,0.75,6,6,8,8,0,12.141,13.075,3.187,9.838,18.794
+R06,multi_serial,多 Agent 串行,8,5,0.625,6,6,7,8,0,13.285,16.23,6.773,11.801,31.842
+R06,single,单 Agent,8,0,0.0,0,0,8,8,0,2.617,2.67,0.172,2.504,3.024

@@ -1,0 +1,280 @@
+{
+  "source": "outputs\\w7_repeat\\repeat_results.csv",
+  "repeats": [
+    1,
+    2,
+    3
+  ],
+  "definitions": {
+    "all": "全部 9 题（含单分支题；单分支题的串行/并行代码路径相同，差异只来自采样与网络抖动）",
+    "expected_multi": "R10–R13，设计上的双分支题",
+    "dynamic_multi": "该轮串行实际取得 ≥2 路成功证据的题（与 W7 单次运行 summarize 口径一致）"
+  },
+  "all": {
+    "per_repeat": [
+      {
+        "repeat": 1,
+        "cases": 9,
+        "parallel_faster": 5,
+        "mean_speedup": 1.078,
+        "aggregate_reduction_pct": 3.53
+      },
+      {
+        "repeat": 2,
+        "cases": 9,
+        "parallel_faster": 8,
+        "mean_speedup": 1.274,
+        "aggregate_reduction_pct": 22.05
+      },
+      {
+        "repeat": 3,
+        "cases": 9,
+        "parallel_faster": 7,
+        "mean_speedup": 1.263,
+        "aggregate_reduction_pct": 20.06
+      }
+    ],
+    "per_case": [
+      {
+        "case_id": "R05",
+        "repeats": 3,
+        "median_serial": 8.632,
+        "median_parallel": 6.153,
+        "median_speedup": 1.509,
+        "median_reduction_pct": 33.72,
+        "parallel_faster_repeats": 3
+      },
+      {
+        "case_id": "R06",
+        "repeats": 3,
+        "median_serial": 14.061,
+        "median_parallel": 13.497,
+        "median_speedup": 1.031,
+        "median_reduction_pct": 2.98,
+        "parallel_faster_repeats": 2
+      },
+      {
+        "case_id": "R07",
+        "repeats": 3,
+        "median_serial": 5.451,
+        "median_parallel": 6.694,
+        "median_speedup": 0.854,
+        "median_reduction_pct": -17.13,
+        "parallel_faster_repeats": 0
+      },
+      {
+        "case_id": "R08",
+        "repeats": 3,
+        "median_serial": 7.846,
+        "median_parallel": 8.18,
+        "median_speedup": 1.193,
+        "median_reduction_pct": 16.2,
+        "parallel_faster_repeats": 2
+      },
+      {
+        "case_id": "R09",
+        "repeats": 3,
+        "median_serial": 5.721,
+        "median_parallel": 5.19,
+        "median_speedup": 1.122,
+        "median_reduction_pct": 10.9,
+        "parallel_faster_repeats": 3
+      },
+      {
+        "case_id": "R10",
+        "repeats": 3,
+        "median_serial": 16.124,
+        "median_parallel": 16.657,
+        "median_speedup": 1.085,
+        "median_reduction_pct": 7.81,
+        "parallel_faster_repeats": 2
+      },
+      {
+        "case_id": "R11",
+        "repeats": 3,
+        "median_serial": 7.902,
+        "median_parallel": 6.685,
+        "median_speedup": 1.102,
+        "median_reduction_pct": 9.27,
+        "parallel_faster_repeats": 2
+      },
+      {
+        "case_id": "R12",
+        "repeats": 3,
+        "median_serial": 15.928,
+        "median_parallel": 9.623,
+        "median_speedup": 1.4,
+        "median_reduction_pct": 28.58,
+        "parallel_faster_repeats": 3
+      },
+      {
+        "case_id": "R13",
+        "repeats": 3,
+        "median_serial": 16.802,
+        "median_parallel": 12.052,
+        "median_speedup": 1.322,
+        "median_reduction_pct": 24.34,
+        "parallel_faster_repeats": 3
+      }
+    ],
+    "aggregate_reduction_median_pct": 20.06,
+    "aggregate_reduction_min_pct": 3.53,
+    "aggregate_reduction_max_pct": 22.05,
+    "parallel_faster_samples": 20,
+    "paired_samples": 27
+  },
+  "expected_multi": {
+    "per_repeat": [
+      {
+        "repeat": 1,
+        "cases": 4,
+        "parallel_faster": 2,
+        "mean_speedup": 1.088,
+        "aggregate_reduction_pct": 9.86
+      },
+      {
+        "repeat": 2,
+        "cases": 4,
+        "parallel_faster": 4,
+        "mean_speedup": 1.251,
+        "aggregate_reduction_pct": 19.09
+      },
+      {
+        "repeat": 3,
+        "cases": 4,
+        "parallel_faster": 4,
+        "mean_speedup": 1.517,
+        "aggregate_reduction_pct": 31.34
+      }
+    ],
+    "per_case": [
+      {
+        "case_id": "R10",
+        "repeats": 3,
+        "median_serial": 16.124,
+        "median_parallel": 16.657,
+        "median_speedup": 1.085,
+        "median_reduction_pct": 7.81,
+        "parallel_faster_repeats": 2
+      },
+      {
+        "case_id": "R11",
+        "repeats": 3,
+        "median_serial": 7.902,
+        "median_parallel": 6.685,
+        "median_speedup": 1.102,
+        "median_reduction_pct": 9.27,
+        "parallel_faster_repeats": 2
+      },
+      {
+        "case_id": "R12",
+        "repeats": 3,
+        "median_serial": 15.928,
+        "median_parallel": 9.623,
+        "median_speedup": 1.4,
+        "median_reduction_pct": 28.58,
+        "parallel_faster_repeats": 3
+      },
+      {
+        "case_id": "R13",
+        "repeats": 3,
+        "median_serial": 16.802,
+        "median_parallel": 12.052,
+        "median_speedup": 1.322,
+        "median_reduction_pct": 24.34,
+        "parallel_faster_repeats": 3
+      }
+    ],
+    "aggregate_reduction_median_pct": 19.09,
+    "aggregate_reduction_min_pct": 9.86,
+    "aggregate_reduction_max_pct": 31.34,
+    "parallel_faster_samples": 10,
+    "paired_samples": 12
+  },
+  "dynamic_multi": {
+    "per_repeat": [
+      {
+        "repeat": 1,
+        "cases": 6,
+        "parallel_faster": 3,
+        "mean_speedup": 1.084,
+        "aggregate_reduction_pct": 3.11
+      },
+      {
+        "repeat": 2,
+        "cases": 6,
+        "parallel_faster": 6,
+        "mean_speedup": 1.362,
+        "aggregate_reduction_pct": 25.57
+      },
+      {
+        "repeat": 3,
+        "cases": 6,
+        "parallel_faster": 6,
+        "mean_speedup": 1.417,
+        "aggregate_reduction_pct": 26.19
+      }
+    ],
+    "per_case": [
+      {
+        "case_id": "R05",
+        "repeats": 3,
+        "median_serial": 8.632,
+        "median_parallel": 6.153,
+        "median_speedup": 1.509,
+        "median_reduction_pct": 33.72,
+        "parallel_faster_repeats": 3
+      },
+      {
+        "case_id": "R06",
+        "repeats": 3,
+        "median_serial": 14.061,
+        "median_parallel": 13.497,
+        "median_speedup": 1.031,
+        "median_reduction_pct": 2.98,
+        "parallel_faster_repeats": 2
+      },
+      {
+        "case_id": "R10",
+        "repeats": 3,
+        "median_serial": 16.124,
+        "median_parallel": 16.657,
+        "median_speedup": 1.085,
+        "median_reduction_pct": 7.81,
+        "parallel_faster_repeats": 2
+      },
+      {
+        "case_id": "R11",
+        "repeats": 3,
+        "median_serial": 7.902,
+        "median_parallel": 6.685,
+        "median_speedup": 1.102,
+        "median_reduction_pct": 9.27,
+        "parallel_faster_repeats": 2
+      },
+      {
+        "case_id": "R12",
+        "repeats": 3,
+        "median_serial": 15.928,
+        "median_parallel": 9.623,
+        "median_speedup": 1.4,
+        "median_reduction_pct": 28.58,
+        "parallel_faster_repeats": 3
+      },
+      {
+        "case_id": "R13",
+        "repeats": 3,
+        "median_serial": 16.802,
+        "median_parallel": 12.052,
+        "median_speedup": 1.322,
+        "median_reduction_pct": 24.34,
+        "parallel_faster_repeats": 3
+      }
+    ],
+    "aggregate_reduction_median_pct": 25.57,
+    "aggregate_reduction_min_pct": 3.11,
+    "aggregate_reduction_max_pct": 26.19,
+    "parallel_faster_samples": 15,
+    "paired_samples": 18
+  }
+}

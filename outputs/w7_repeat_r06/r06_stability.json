@@ -1,0 +1,85 @@
+{
+  "case_id": "R06",
+  "question": "重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？",
+  "repeats": 8,
+  "total_runs": 24,
+  "modes": {
+    "multi_parallel": {
+      "mode_label": "多 Agent 并行",
+      "runs": 8,
+      "overall_pass": 6,
+      "overall_pass_rate": 0.75,
+      "pass_rate_wilson_95": [
+        0.4093,
+        0.9285
+      ],
+      "objective_pass": 6,
+      "hard_pass": 6,
+      "judge_pass": 8,
+      "capability_pass": 8,
+      "error_runs": 0,
+      "mean_seconds": 13.075,
+      "std_seconds": 3.187,
+      "cv_pct": 24.4,
+      "median_seconds": 12.141,
+      "min_seconds": 9.838,
+      "max_seconds": 18.794,
+      "iqr_seconds": 4.637
+    },
+    "multi_serial": {
+      "mode_label": "多 Agent 串行",
+      "runs": 8,
+      "overall_pass": 5,
+      "overall_pass_rate": 0.625,
+      "pass_rate_wilson_95": [
+        0.3057,
+        0.8632
+      ],
+      "objective_pass": 6,
+      "hard_pass": 6,
+      "judge_pass": 7,
+      "capability_pass": 8,
+      "error_runs": 0,
+      "mean_seconds": 16.23,
+      "std_seconds": 6.773,
+      "cv_pct": 41.7,
+      "median_seconds": 13.285,
+      "min_seconds": 11.801,
+      "max_seconds": 31.842,
+      "iqr_seconds": 5.324
+    },
+    "single": {
+      "mode_label": "单 Agent",
+      "runs": 8,
+      "overall_pass": 0,
+      "overall_pass_rate": 0.0,
+      "pass_rate_wilson_95": [
+        0.0,
+        0.3244
+      ],
+      "objective_pass": 0,
+      "hard_pass": 0,
+      "judge_pass": 8,
+      "capability_pass": 8,
+      "error_runs": 0,
+      "mean_seconds": 2.67,
+      "std_seconds": 0.172,
+      "cv_pct": 6.4,
+      "median_seconds": 2.617,
+      "min_seconds": 2.504,
+      "max_seconds": 3.024,
+      "iqr_seconds": 0.17
+    }
+  },
+  "note": "R06 的失败均来自程序级硬校验（派生数字/label 清洗/路由变化），不是并行缺陷。",
+  "stats": {
+    "serial_vs_parallel_pass_fisher_p": 1.0,
+    "single_vs_serial_pass_fisher_p": 0.0256,
+    "paired_rounds": 8,
+    "parallel_faster_rounds": 5,
+    "median_time_ratio": 1.265,
+    "mean_time_ratio": 1.357,
+    "time_ratio_std": 0.805,
+    "median_ratio_of_medians": 1.094
+  }
+}

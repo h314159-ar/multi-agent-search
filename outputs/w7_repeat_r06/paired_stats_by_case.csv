@@ -1,0 +1,2 @@
+﻿case_id,repeats,median_serial,median_parallel,median_speedup,median_reduction_pct,parallel_faster_repeats
+R06,8,13.285,12.141,1.265,20.9,5

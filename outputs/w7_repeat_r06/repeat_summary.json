@@ -1,0 +1,211 @@
+{
+  "metadata": {
+    "generated_at": "2026-11-23T21:08:11+08:00",
+    "model": "deepseek-chat",
+    "temperature": 0,
+    "rag_backend": "hybrid",
+    "case_ids": [
+      "R06"
+    ],
+    "modes": [
+      "single",
+      "multi_serial",
+      "multi_parallel"
+    ],
+    "repeats": 8,
+    "total_runs": 24,
+    "wall_seconds_including_judges": 285.113,
+    "purpose": "交接文档 12.2：补充核心题重复实验，报告中位数与波动区间"
+  },
+  "mode_summary": [
+    {
+      "mode": "multi_parallel",
+      "mode_label": "多 Agent 并行",
+      "runs": 8,
+      "cases": 1,
+      "repeats": 8,
+      "overall_pass_runs": 6,
+      "overall_pass_rate": 0.75,
+      "overall_pass_per_repeat": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        0
+      ],
+      "overall_pass_per_repeat_median": 1.0,
+      "overall_pass_per_repeat_min": 0,
+      "overall_pass_per_repeat_max": 1,
+      "objective_pass_runs": 6,
+      "hard_pass_runs": 6,
+      "judge_pass_runs": 8,
+      "capability_pass_runs": 8,
+      "error_runs": 0,
+      "median_seconds": 12.141,
+      "mean_seconds": 13.075,
+      "std_seconds": 3.187,
+      "p90_seconds": 16.726,
+      "min_seconds": 9.838,
+      "max_seconds": 18.794
+    },
+    {
+      "mode": "multi_serial",
+      "mode_label": "多 Agent 串行",
+      "runs": 8,
+      "cases": 1,
+      "repeats": 8,
+      "overall_pass_runs": 5,
+      "overall_pass_rate": 0.625,
+      "overall_pass_per_repeat": [
+        1,
+        0,
+        0,
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      "overall_pass_per_repeat_median": 1.0,
+      "overall_pass_per_repeat_min": 0,
+      "overall_pass_per_repeat_max": 1,
+      "objective_pass_runs": 6,
+      "hard_pass_runs": 6,
+      "judge_pass_runs": 7,
+      "capability_pass_runs": 8,
+      "error_runs": 0,
+      "median_seconds": 13.285,
+      "mean_seconds": 16.23,
+      "std_seconds": 6.773,
+      "p90_seconds": 22.361,
+      "min_seconds": 11.801,
+      "max_seconds": 31.842
+    },
+    {
+      "mode": "single",
+      "mode_label": "单 Agent",
+      "runs": 8,
+      "cases": 1,
+      "repeats": 8,
+      "overall_pass_runs": 0,
+      "overall_pass_rate": 0.0,
+      "overall_pass_per_repeat": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "overall_pass_per_repeat_median": 0.0,
+      "overall_pass_per_repeat_min": 0,
+      "overall_pass_per_repeat_max": 0,
+      "objective_pass_runs": 0,
+      "hard_pass_runs": 0,
+      "judge_pass_runs": 8,
+      "capability_pass_runs": 8,
+      "error_runs": 0,
+      "median_seconds": 2.617,
+      "mean_seconds": 2.67,
+      "std_seconds": 0.172,
+      "p90_seconds": 2.851,
+      "min_seconds": 2.504,
+      "max_seconds": 3.024
+    }
+  ],
+  "paired_parallel": {
+    "paired_case_repeats": 8,
+    "parallel_faster_repeats": 5,
+    "per_case_view": {
+      "mean_of_median_speedup": 1.265,
+      "median_of_median_speedup": 1.265,
+      "cases_parallel_faster_majority": 1,
+      "cases_total": 1,
+      "median_of_median_reduction_pct": 20.9
+    },
+    "per_repeat_aggregate": [
+      {
+        "repeat": 1,
+        "cases": 1,
+        "parallel_faster_cases": 0,
+        "mean_speedup": 0.832,
+        "ratio_of_mean_times": 0.832,
+        "aggregate_reduction_pct": -20.14
+      },
+      {
+        "repeat": 2,
+        "cases": 1,
+        "parallel_faster_cases": 1,
+        "mean_speedup": 3.18,
+        "ratio_of_mean_times": 3.18,
+        "aggregate_reduction_pct": 68.55
+      },
+      {
+        "repeat": 3,
+        "cases": 1,
+        "parallel_faster_cases": 1,
+        "mean_speedup": 1.302,
+        "ratio_of_mean_times": 1.302,
+        "aggregate_reduction_pct": 23.19
+      },
+      {
+        "repeat": 4,
+        "cases": 1,
+        "parallel_faster_cases": 1,
+        "mean_speedup": 1.229,
+        "ratio_of_mean_times": 1.229,
+        "aggregate_reduction_pct": 18.61
+      },
+      {
+        "repeat": 5,
+        "cases": 1,
+        "parallel_faster_cases": 0,
+        "mean_speedup": 0.628,
+        "ratio_of_mean_times": 0.628,
+        "aggregate_reduction_pct": -59.26
+      },
+      {
+        "repeat": 6,
+        "cases": 1,
+        "parallel_faster_cases": 1,
+        "mean_speedup": 1.534,
+        "ratio_of_mean_times": 1.534,
+        "aggregate_reduction_pct": 34.83
+      },
+      {
+        "repeat": 7,
+        "cases": 1,
+        "parallel_faster_cases": 1,
+        "mean_speedup": 1.387,
+        "ratio_of_mean_times": 1.387,
+        "aggregate_reduction_pct": 27.88
+      },
+      {
+        "repeat": 8,
+        "cases": 1,
+        "parallel_faster_cases": 0,
+        "mean_speedup": 0.764,
+        "ratio_of_mean_times": 0.764,
+        "aggregate_reduction_pct": -30.86
+      }
+    ],
+    "aggregate_reduction_median_pct": 20.9,
+    "aggregate_reduction_min_pct": -59.26,
+    "aggregate_reduction_max_pct": 68.55,
+    "ratio_of_mean_times_median": 1.266
+  },
+  "acceptance": {
+    "objective_pass": "成功执行所需工具 + 原始证据/Fact 关系/声明式格式检查通过 + 关键事实命中",
+    "overall_pass": "objective_pass + 同一外部 LLM 评审 PASS",
+    "elapsed_seconds": "不含外部评审耗时"
+  },
+  "limitations": [
+    "每题每模式仅 N 次重复，用于观察波动而非统计检验",
+    "外部 LLM 评审不替代人工抽查"
+  ]
+}

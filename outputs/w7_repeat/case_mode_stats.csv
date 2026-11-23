@@ -1,0 +1,28 @@
+﻿case_id,mode,mode_label,runs,overall_pass_count,overall_pass_rate,objective_pass_count,hard_pass_count,judge_pass_count,capability_pass_count,error_count,median_seconds,min_seconds,max_seconds
+R05,multi_parallel,多 Agent 并行,3,3,1.0,3,3,3,3,0,6.153,5.635,7.698
+R05,multi_serial,多 Agent 串行,3,3,1.0,3,3,3,3,0,8.632,8.51,11.615
+R05,single,单 Agent,3,3,1.0,3,3,3,3,0,2.418,1.572,3.299
+R06,multi_parallel,多 Agent 并行,3,1,0.3333,1,1,3,3,0,13.497,11.845,21.764
+R06,multi_serial,多 Agent 串行,3,3,1.0,3,3,3,3,0,14.061,13.912,19.618
+R06,single,单 Agent,3,0,0.0,0,0,3,3,0,3.04,2.458,3.404
+R07,multi_parallel,多 Agent 并行,3,3,1.0,3,3,3,3,0,6.694,5.642,7.527
+R07,multi_serial,多 Agent 串行,3,3,1.0,3,3,3,3,0,5.451,5.029,6.426
+R07,single,单 Agent,3,3,1.0,3,3,3,3,0,3.538,2.994,3.861
+R08,multi_parallel,多 Agent 并行,3,3,1.0,3,3,3,3,0,8.18,6.575,8.969
+R08,multi_serial,多 Agent 串行,3,3,1.0,3,3,3,3,0,7.846,7.63,10.989
+R08,single,单 Agent,3,2,0.6667,2,2,3,3,0,3.111,2.726,3.671
+R09,multi_parallel,多 Agent 并行,3,3,1.0,3,3,3,3,0,5.19,4.57,5.513
+R09,multi_serial,多 Agent 串行,3,3,1.0,3,3,3,3,0,5.721,5.129,6.579
+R09,single,单 Agent,3,3,1.0,3,3,3,3,0,3.124,2.082,4.085
+R10,multi_parallel,多 Agent 并行,3,3,1.0,3,3,3,3,0,16.657,14.806,17.249
+R10,multi_serial,多 Agent 串行,3,2,0.6667,3,3,2,3,0,16.124,16.061,20.848
+R10,single,单 Agent,3,1,0.3333,1,1,3,3,0,3.424,3.312,3.446
+R11,multi_parallel,多 Agent 并行,3,3,1.0,3,3,3,3,0,6.685,4.83,11.074
+R11,multi_serial,多 Agent 串行,3,3,1.0,3,3,3,3,0,7.902,7.368,9.001
+R11,single,单 Agent,3,0,0.0,0,3,3,0,0,1.907,1.846,2.734
+R12,multi_parallel,多 Agent 并行,3,3,1.0,3,3,3,3,0,9.623,9.184,16.83
+R12,multi_serial,多 Agent 串行,3,3,1.0,3,3,3,3,0,15.928,12.859,21.554
+R12,single,单 Agent,3,3,1.0,3,3,3,3,0,3.307,2.237,5.13
+R13,multi_parallel,多 Agent 并行,3,3,1.0,3,3,3,3,0,12.052,9.432,16.069
+R13,multi_serial,多 Agent 串行,3,2,0.6667,2,2,3,3,0,16.802,13.994,21.239
+R13,single,单 Agent,3,0,0.0,0,0,3,0,0,2.937,2.484,5.576

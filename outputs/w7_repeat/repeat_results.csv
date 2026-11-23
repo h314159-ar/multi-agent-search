@@ -1,0 +1,415 @@
+﻿case_id,question,mode,expected_routes,planned_routes,actual_routes,successful_routes,capability_ok,internal_verdict,hard_check,checked_numbers,missing_numbers,missing_facts,judge_verdict,judge_comments,objective_pass,overall_pass,elapsed_seconds,revision_count,answer,error,repeat
+R05,决策树预测宽容型评分者的准确率是多少？最重要的特征是什么？,single,mining,,mining,mining,True,N/A（无内部 Critic）,PASS,13,,,PASS,答案完整引用了交叉验证与测试集准确率、特征重要性排序及局限，结论与证据一致，无夸大或遗漏关键限制。,True,True,2.418,0,"决策树预测“宽容型评分者”（平均评分≥3.5）的准确率：5 折交叉验证为 70.3% ± 1.7%（多数类基线 65.2%，提升约 5pp）；测试集准确率 66.4%（n=122，树深 4，14 个叶节点）。
+
+最重要的特征是 std_rating（评分标准差），重要性 0.58，其次是 log_n_ratings（0.30）和 first_year（0.11）。规律是：评分波动大、爱憎分明的用户更偏严格且更活跃。局限：纯行为特征对评分严格度解释力有限，缺少“品味”维度。",,1
+R05,决策树预测宽容型评分者的准确率是多少？最重要的特征是什么？,multi_serial,mining,mining|rag,mining|rag,mining|rag,True,PASS,PASS,10,,,PASS,答案直接回答了准确率（5折CV 70.3%±1.7%，测试集66.4%）和最重要特征（std_rating 0.58），并列出次重要特征、基线与局限，与证据完全一致，无夸大或遗漏关键限制。,True,True,11.615,0,决策树预测“宽容型评分者”的 5 折交叉验证准确率为 70.3% ± 1.7%，多数类基线为 65.2%，提升约 5 个百分点；测试集准确率为 66.4%（n=122）。最重要的特征是评分标准差 std_rating（重要性 0.58），其次是 log_n_ratings（0.30）和 first_year（0.11）。规律是评分波动大（爱憎分明）的用户平均分更低、更严格，也更活跃。局限在于纯行为特征对评分严格度的解释力有限，行为数据中没有“品味”维度。,,1
+R05,决策树预测宽容型评分者的准确率是多少？最重要的特征是什么？,multi_parallel,mining,mining|rag,mining|rag,mining|rag,True,PASS,PASS,10,,,PASS,答案直接回答了准确率和最重要特征，数值与证据一致，并如实说明了基线、测试集、特征重要性及局限，无夸大或遗漏关键限制。,True,True,7.698,0,决策树预测“宽容型评分者”的 5 折交叉验证准确率为 70.3% ± 1.7%，相比多数类基线 65.2% 提升约 5 个百分点；测试集准确率为 66.4%（n=122）。最重要的特征是评分标准差 std_rating（重要性 0.58），其次是 log_n_ratings（0.30）和 first_year（0.11）。规律是评分波动大的用户更严格、更活跃。局限在于纯行为特征解释力有限，缺少“品味”维度。,,1
+R06,重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？,single,mining,,mining,mining,True,N/A（无内部 Critic）,FAIL,12,106.9|563.9,,PASS,答案直接对比两组规则，数值与证据一致；跨组稳定规则六条均确实在两组出现；对重度组置信度更高、轻度组更分散且部分 lift 更高的概括有数据支撑，未夸大或遗漏关键限制。,False,False,3.404,0,"结论：两组共享“Romance→Comedy/Drama”和“Adventure→Action”等核心规则，但重度用户规则更“纯”（置信度常达 1.0），轻度用户规则更分散、lift 更高。
+
+差异：
+- 重度用户（78 人，人均 563.9 条评分）：Romance→Comedy 置信度 1.0000、Drama+Romance→Comedy 1.0000、Crime→Drama 1.0000，偏好高度确定；另有 Crime 系列规则（Crime→Comedy、Crime+Drama→Comedy）。
+- 轻度用户（532 人，人均 106.9 条）：Romance→Comedy 仅 0.8105，但 lift 更高（1.5262）；Sci-Fi→Action lift 1.7428 明显高于重度组 1.3265；独有 Comedy+Romance→Drama、Crime+Thriller→Drama、Romance→Drama、Comedy+Thriller→Drama。
+
+跨组稳定规则：Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama（六条在两组均出现）。",,1
+R06,重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？,multi_serial,mining,mining|rag,mining|rag,mining|rag,True,PASS,PASS,11,,,PASS,答案直接回应差异与跨组稳定规则，结论与证据一致：重度组Romance→Comedy confidence=1.000、轻度组0.811；重度组Crime复合规则、轻度组Thriller系规则；情感三角与Sci-Fi→Action跨组出现；并如实标注重度组小样本限制。规模数字与cluster_profiles一致。,True,True,14.061,0,"结论：两组共享情感片三角与 Sci-Fi→Action 等核心规则，但重度组信号更纯、独有 Crime 复合规则族，轻度组独有 Thriller 系规则。
+
+差异：重度组 Romance→Comedy 的 confidence 为 1.000，轻度组为 0.811；重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。重度组仅 78 人，每条规则仅 5–14 人支撑，属小样本探索性发现。
+
+跨组稳定：情感三角（Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy）与 Sci-Fi→Action 在两组均出现，验证全量规则稳健性。
+
+规模：K-Means 取 K=2（轮廓系数 0.4077），轻度用户 532 人（占比 87.2%），重度用户 78 人（占比 12.8%）。",,1
+R06,重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？,multi_parallel,mining,mining|sql,mining|sql,mining|sql,True,FAIL,FAIL,17,10,,PASS,答案直接回应差异与跨组稳定，结论与证据一致：置信度对比数值正确，稳定规则确为两组均出现且lift>1的规则，并明确标注了仅top-10人工比对、SQL返回0行及分群口径矛盾等限制，未夸大。,False,False,21.764,1,"结论：两组规则各有侧重，跨组“稳定”仅能人工比对得出，且证据存在口径矛盾。
+
+差异：重度组部分共享规则置信度更高（Romance→Comedy 1.0000 vs 轻度 0.8105；Crime→Drama 1.0000 vs 0.9286），但 Sci-Fi→Action（0.7143 vs 0.8140）、Adventure→Action（0.6364 vs 0.6228，lift 1.1818 vs 1.3334）轻度组更强。轻度组另有 Comedy+Romance→Drama、Romance→Drama、Crime+Thriller→Drama 等独有规则。
+
+跨组稳定：按“两组均出现且 lift>1”判据，Romance→Comedy、Sci-Fi→Action、Adventure→Action 可视为稳定，但 Romance→Comedy 置信度差异大，稳定性有限。
+
+限制：两组规则各仅展示 10 条（可能非全量），跨组对比 SQL 返回 0 行，稳定规则系人工比对 top-10，存在选择偏差。规模上 cluster_profiles 为 532/78 人，SQL 分组为 heavy 151、light 305，口径不一致，需谨慎解读。",,1
+R07,为什么 K-Means 选 K=2？PCA 为什么不参与聚类训练？,single,rag,,rag,rag,True,N/A（无内部 Critic）,PASS,19,,,PASS,答案直接回应两问：K=2 依据轮廓系数在 K=2~8 最高（0.4077）及上下界理由；PCA 仅用于 2 维可视化、不参与训练，并给出降维会丢失低方差区分维度、聚类中心失去可解释性的原因。结论与证据一致，未夸大或遗漏关键限制。,True,True,3.861,0,"结论：K=2 是轮廓系数在 K=2~8 中的最优解；PCA 只用于可视化，不参与训练。
+
+K=2 的依据
+- 在 K=2 到 8 的范围内逐一比较，K=2 的轮廓系数最高，为 0.4077。
+- 下界取 2：K=1 没有聚类意义，轮廓系数也无法定义；上界取 8：出于业务可解释性考虑。
+- 结果可解释：轻度用户 532 人（87.2%），重度用户 78 人（12.8%）；两组平均分接近（3.67 与 3.58），说明分群识别的是活跃度差异，而不是评分高低。
+
+PCA 不参与训练的原因
+- PCA 只把 4 维特征（log_n_ratings、mean_rating、std_rating、log_active_years）投影到 2 维，用于可视化。
+- 如果先降维再聚类，会丢失方差低但有区分度的维度，聚类中心也会失去业务可解释性。
+- 聚类前必须用 StandardScaler 标准化，因为 K-Means 基于欧氏距离，量纲差异会主导距离计算。",,1
+R07,为什么 K-Means 选 K=2？PCA 为什么不参与聚类训练？,multi_serial,rag,rag,rag,rag,True,PASS,PASS,10,,,PASS,答案直接回答了 K=2 的依据（轮廓系数最高、K=1 无意义、上界 8 出于可解释性）和 PCA 不参与训练的原因（仅用于可视化、先降维会丢失低方差区分维度、中心失去可解释性），与证据一致，未夸大或遗漏关键限制。,True,True,5.451,0,K=2 是因为在 K=2 到 8 的范围内，K=2 的轮廓系数最高（0.4077），并且 K=1 没有聚类意义、轮廓系数也无法定义，所以下界取 2；上界取 8 是出于业务可解释性考虑。PCA 只用于把 4 维特征投影到 2 维做可视化，不参与训练：如果先降维再聚类，会丢失低方差但有区分度的维度，聚类中心也会失去业务可解释性。聚类特征为 log_n_ratings、mean_rating、std_rating、log_active_years，并且必须用 StandardScaler 标准化，因为 K-Means 基于欧氏距离，量纲差异会主导距离计算。,,1
+R07,为什么 K-Means 选 K=2？PCA 为什么不参与聚类训练？,multi_parallel,rag,rag,rag,rag,True,PASS,PASS,8,,,PASS,答案直接回答了 K=2 的依据（轮廓系数最高、K=1 无意义、上界受可解释性约束）和 PCA 不参与训练的原因（仅用于可视化、避免丢失低方差维度与可解释性），与证据一致；补充的标准化说明也来自证据，未夸大或遗漏关键限制。,True,True,6.694,0,K=2 是因为它在 K=2 到 8 中轮廓系数最高（0.4077），且 K=1 无聚类意义、轮廓系数无法定义，上界 8 则受业务可解释性约束。PCA 只用于把 4 维特征投影到 2 维做可视化，不参与训练：先降维再聚类会丢失低方差但有区分度的维度，聚类中心也会失去业务可解释性。聚类前必须用 StandardScaler 标准化，因为 K-Means 基于欧氏距离，量纲差异会主导距离计算。,,1
+R08,关联规则里的 lift 和 support 怎么理解？为什么不能只看 confidence？,single,rag,,mining|rag,mining|rag,True,N/A（无内部 Critic）,PASS,8,,,PASS,答案直接解释了 support、confidence、lift 的含义，并说明只看 confidence 会被热门后项虚高；数值与证据一致（0.1363≈83/609、Romance→Comedy 0.8318、lift 1.79、Crime→Drama 0.94/1.21），且正确指出 lift>1 才是正相关。,True,True,3.111,0,"结论：support 看“这条规则覆盖多少人”，lift 看“前项是否真的提升了后项概率”，confidence 只说明后项在前项下出现的比例，会被热门类型虚高。
+
+- support：前项+后项同时出现的事务占比。如 Romance→Comedy+Drama 为 0.1363，即 609 条事务中约 83 人支撑，属低频但可解释的模式。
+- confidence：前项出现时后项也出现的比例。如 Romance→Comedy 为 0.8318。
+- lift：confidence ÷ 后项自身概率，>1 才是正相关。Romance→Comedy+Drama lift 1.79，说明提升明显；Crime→Drama confidence 0.94 但 lift 仅 1.21，因为 Drama 本身太热门。
+
+所以只看 confidence 会把“后项本来就常见”误判为强关联，项目按 lift 排序正是为此。",,1
+R08,关联规则里的 lift 和 support 怎么理解？为什么不能只看 confidence？,multi_serial,rag,rag,rag,rag,True,PASS,PASS,13,,,PASS,答案直接解释了 support、confidence、lift 的含义，并说明不能只看 confidence 的原因（高 confidence 可能只是后项热门），与证据中 lift=confidence/P(B)、大于 1 才是正相关、规则按 lift 排序等表述一致；引用的 609 事务、83 人支撑、13 条规则及 Sci-Fi→Action、Crime→Drama 数值均与证据吻合，未夸大或遗漏关键限制。,True,True,7.846,0,"不能只看 confidence，因为高 confidence 可能只是后项本身热门；lift 衡量正相关，support 衡量规则覆盖度。
+
+- support：规则在事务中的覆盖比例。本次共 609 条事务，支撑人数=support×609；如 Romance→Comedy+Drama 有 83 人支撑。
+- confidence：前项出现时后项也出现的比例，但会被热门后项抬高。
+- lift：confidence/P(B)，大于 1 才是正相关，因此规则按 lift 而非 confidence 排序。
+
+本次 min_support=0.05 共挖出 13 条规则（lift>1 且 confidence≥0.5）。典型如 Sci-Fi→Action：confidence 0.80、lift 1.68、40 人支撑；Crime→Drama：confidence 0.94、lift 1.21。",,1
+R08,关联规则里的 lift 和 support 怎么理解？为什么不能只看 confidence？,multi_parallel,rag,rag,rag,rag,True,PASS,PASS,14,,,PASS,答案直接解释了 support、lift 和不能只看 confidence 的原因，且与证据一致：lift=confidence/P(B)、大于1为正相关、高confidence可能因后项热门、支撑人数=support×609。引用的规则数值（13条、min_support=0.05、lift>1且confidence>=0.5、三条典型规则）均与证据吻合，未夸大或遗漏关键限制。,True,True,6.575,0,"不能只看 confidence，因为高 confidence 可能只是后项本身热门；lift 衡量的是“比随机购买后项高出多少”，大于 1 才是正相关。support 则是这条规则在全部事务中出现的比例，支撑人数等于 support 乘以事务数 609。
+
+本次 Apriori 在 min_support=0.05 下共挖出 13 条规则（lift>1 且 confidence>=0.5）。典型如 Romance 推出 Comedy+Drama：confidence 0.78、lift 1.79、83 人支撑；Sci-Fi 推出 Action：confidence 0.80、lift 1.68、40 人支撑；Crime 推出 Drama：confidence 0.94、lift 1.21。可见 confidence 高不代表关联强，规则应按 lift 排序。",,1
+R09,LangGraph 并行分支写同一个 State 字段为什么会冲突？reducer 怎么解决？,single,rag,,rag,rag,True,N/A（无内部 Critic）,PASS,0,,,PASS,答案直接解释了冲突原因（共享字典默认覆盖合并导致 InvalidUpdateError）和 reducer 的解决机制，并准确引用证据中 evidences 字典合并、trace 用 operator.add、分支只返回增量等做法；补充的“逻辑并行、物理串行”限制也与证据一致，无夸大或遗漏关键限制。,True,True,2.082,0,"结论：LangGraph 的 State 是共享字典，并行分支各自返回对同一字段的更新时，默认按“覆盖”合并，无法确定保留哪个值，因此抛出 InvalidUpdateError。
+
+reducer 解决方式：为字段声明合并函数，让多个分支的增量按规则合并，而不是互相覆盖。项目 W5 编排层的实际做法：
+- `evidences` 用字典合并 reducer（按 doc_id 合并，保留最高分）；
+- `trace` 用 `operator.add` 列表累加；
+- 每个分支只返回增量，不返回完整 State。
+
+补充：W5 的扇出是逻辑并行，同步 SDK 下物理上仍串行。",,1
+R09,LangGraph 并行分支写同一个 State 字段为什么会冲突？reducer 怎么解决？,multi_serial,rag,rag,rag,rag,True,PASS,PASS,0,,,PASS,答案直接回答了冲突原因（共享 State 字段并发写触发 InvalidUpdateError）和 reducer 机制（字段级合并规则、分支只返回增量），并给出 evidences 字典合并、trace operator.add 的具体例子，与证据一致；还补充了逻辑并行/物理串行的限制，未夸大。,True,True,6.579,0,并行分支写同一个 State 字段会冲突，是因为 LangGraph 的 State 是共享字典，多个专家同时写同一字段会触发 InvalidUpdateError。reducer 的解决方式是：为每个字段声明合并规则，让各分支只返回增量，由 reducer 负责合并。例如 evidences 用字典合并 reducer，trace 用 operator.add 列表累加。另外，W5 的扇出是逻辑并行，在同步 SDK 下物理上仍串行。,,1
+R09,LangGraph 并行分支写同一个 State 字段为什么会冲突？reducer 怎么解决？,multi_parallel,rag,rag,rag,rag,True,PASS,PASS,0,,,PASS,答案直接回应了冲突原因（共享 State 字段并发写触发 InvalidUpdateError）和 reducer 解法（各分支返回增量、由 reducer 合并），并准确引用了 evidences 字典合并、trace 用 operator.add 的具体证据，同时保留了“逻辑并行、物理串行”的关键限制，无夸大或遗漏。,True,True,5.513,0,"结论：LangGraph 的 State 是共享字典，多个并行分支同时写同一个字段时，会触发 `InvalidUpdateError`。解决办法是为该字段配置 reducer，让各分支只返回增量，由 reducer 负责合并。
+
+细节：在 W5 编排层中，`evidences` 使用字典合并 reducer，`trace` 使用 `operator.add` 做列表累加，每个分支只返回增量，从而避免冲突。需要注意，W5 的扇出只是逻辑并行，在同步 SDK 下物理上仍然串行。",,1
+R10,给我一份关于 MovieLens 用户偏好模式的简报，并说明挖掘方法。,single,mining|rag,,mining|rag,mining|rag,True,N/A（无内部 Critic）,PASS,38,,,PASS,答案直接回应简报与方法说明，分群、关联规则及方法要点均与证据一致；关键限制（K=2为扫描最高点、事务定义、按lift排序、userId=442过滤）均已保留，未发现夸大或遗漏。,True,True,3.424,0,"结论：MovieLens 用户偏好呈“活跃度分层 + 类型捆绑”两大模式。
+
+一、用户分群（K-Means，K=2，轮廓系数 0.4077，在 K=2~8 中最高）
+- 轻度用户 532 人（87.2%）：人均评分 106.9 条，活跃 1.1 年，均分 3.67。
+- 重度用户 78 人（12.8%）：人均评分 563.9 条，活跃 5.6 年，均分 3.58。
+- 两组均分接近，说明分群识别的是活跃度差异，而非评分宽严；约 13% 的重度用户贡献约 44% 的评分，复现二八结构。
+
+二、类型关联（Apriori，min_support=0.05，609 条事务，13 条规则）
+- Romance → Comedy+Drama：support 0.1363、confidence 0.7757、lift 1.7894（83 人支撑）。
+- Sci-Fi → Action：0.0657 / 0.8000 / 1.6800（40 人支撑）。
+- Romance → Comedy：0.1461 / 0.8318 / 1.5350。
+- 主要模式是“情感片三角”与“科幻—动作”绑定。
+
+三、方法要点
+- 事务构建：每位用户取评分≥4 的电影中类型出现次数最多的前 3 个类型，形成偏好签名，共 609 条事务（userId=442 因最高分仅 2.5 被过滤）。早期“所有 4 分片类型”定义因主流类型 support 超 95% 无区分度而废弃。
+- 规则按 lift 排序而非 confidence，因高 confidence 可能只是后项本身热门；lift>1 才是正相关。",,1
+R10,给我一份关于 MovieLens 用户偏好模式的简报，并说明挖掘方法。,multi_serial,mining|rag,mining|rag,mining|rag,mining|rag,True,PASS,PASS,38,,,PASS,答案直接回应简报与方法要求，分群、关联规则、决策树数值均与证据一致；正确标注轮廓系数、支持度/置信度/提升度、交叉验证与基线，并保留决策树解释力有限的局限。未发现夸大或关键遗漏。,True,True,16.124,0,"MovieLens 用户偏好简报
+
+结论：用户呈明显“二八分化”：绝大多数是轻度用户，少数重度用户贡献了主要活跃度；类型偏好上，Romance 与 Comedy、Drama 强关联，Sci-Fi 与 Action 强关联。
+
+分群（K-Means，K=2，轮廓系数 0.41）
+- 轻度用户 532 人（87.2%），人均评分 106.87 条、活跃 1.07 年，均分 3.67。
+- 重度用户 78 人（12.8%），人均评分 563.88 条、活跃 5.56 年，均分 3.58。
+
+关联规则（全量 609 条事务，min_support=0.05）
+- Romance→Comedy+Drama：支持度 0.1363，置信度 0.7757，提升度 1.7894。
+- Sci-Fi→Action：支持度 0.0657，置信度 0.8000，提升度 1.6800。
+- 其余高置信规则：Drama+Romance→Comedy（0.8384）、Romance→Comedy（0.8318）、Adventure→Action（0.6243）。
+
+决策树（预测宽容型评分者）
+5 折交叉验证准确率 70.3%±1.7%，高于多数类基线 65.2%；测试集 66.4%（n=122）。特征重要性：std_rating 0.58 > log_n_ratings 0.30 > first_year 0.11。评分波动大的用户更严格、更活跃；纯行为特征解释力有限。
+
+方法：K-Means 聚类（K 扫描 2~8 取最优）、Apriori 关联规则、决策树分类；数据为 ml-latest-small（100,836 条评分、610 用户、9,742 部电影，稀疏度 98.30%）。",,1
+R10,给我一份关于 MovieLens 用户偏好模式的简报，并说明挖掘方法。,multi_parallel,mining|rag,mining|rag,mining|rag,mining|rag,True,FAIL,PASS,25,,,PASS,答案直接回应简报与方法要求，分群、关联规则、决策树结论均与证据一致；正确标注了测试集准确率低于交叉验证、解释力有限等限制，未夸大。重度用户贡献约四成评分可由数据推算，表述合理。,True,True,17.249,1,"MovieLens 用户偏好简报
+
+K-Means 在 K 扫描 2~8 中取 K=2（轮廓系数最高 0.4077），将用户分为两类：轻度用户 532 人（占 87.2%），人均评分 106.87 条、活跃 1.07 年；重度用户 78 人（占 12.8%），人均 563.88 条、活跃 5.56 年。重度用户人均活跃度约为轻度用户的 5 倍，贡献约四成评分（非绝大部分）。
+
+关联规则（min_support=0.05，609 条事务）显示类型偏好：按提升度最强为 Romance→Comedy+Drama（lift 1.7894）；按置信度最高为 Crime→Drama（0.9355）。
+
+决策树预测宽容型评分者：交叉验证 70.3%±1.7%，但测试集仅 66.4%（n=122），低于交叉验证；std_rating 重要性 0.58 主导。局限：纯行为特征解释力有限，缺少「品味」维度。
+
+数据为 1996–2018 年真实行为，稀疏度 98.30%。",,1
+R11,评分超过 4.0 且至少有 100 人评价的电影有多少部？同时说明 ratings 表有哪些字段。,single,rag|sql,,sql,sql,False,N/A（无内部 Critic）,PASS,4,,,PASS,答案直接给出 47 部，与查询结果一致；并完整列出 ratings 表 6 个字段及类型，与证据一致。将“评分超过 4.0”表述为“平均评分超过 4.0”略有措辞差异，但未改变结论。,False,False,1.846,0,"结论：共 47 部电影平均评分超过 4.0，且评价人数不少于 100 人。
+
+ratings 表字段（6 个）：userId（BIGINT）、movieId（BIGINT）、rating（DOUBLE）、timestamp（BIGINT）、rated_at（TIMESTAMP）、rated_year（INTEGER）。",,1
+R11,评分超过 4.0 且至少有 100 人评价的电影有多少部？同时说明 ratings 表有哪些字段。,multi_serial,rag|sql,rag|sql,rag|sql,rag|sql,True,PASS,PASS,8,,,PASS,答案直接给出47部，与SQL结果一致；ratings表6个字段及类型/含义与SQL列信息和数据字典一致，无夸大或遗漏关键限制。,True,True,9.001,0,"评分超过 4.0 且至少有 100 人评价的电影共有 47 部（查询结果共 1 行，当前展示 1 行）。
+
+ratings 表共有 6 个字段：userId（用户ID）、movieId（电影ID）、rating（评分，0.5–5.0）、timestamp（Unix 时间戳）、rated_at（评分时间）、rated_year（评分年份）。",,1
+R11,评分超过 4.0 且至少有 100 人评价的电影有多少部？同时说明 ratings 表有哪些字段。,multi_parallel,rag|sql,rag|sql,rag|sql,rag|sql,True,PASS,PASS,8,,,PASS,答案直接给出47部，与SQL结果一致；完整列出ratings表6个字段及类型/含义，与SQL列信息和数据字典一致；未夸大或遗漏关键限制。,True,True,11.074,0,"评分超过 4.0 且至少有 100 人评价的电影共有 47 部（查询结果完整返回 1 行，非截断展示）。
+
+ratings 表共 6 个字段：userId（用户ID）、movieId（电影ID）、rating（评分，0.5–5.0）、timestamp（Unix 时间戳）、rated_at（评分时间）、rated_year（评分年份）。该表共 100,836 行评分记录。",,1
+R12,结合 K-Means 分群结果说明轻度和重度用户的差异，并解释为什么轮廓系数可以用来选 K。,single,mining|rag,,mining|rag,mining|rag,True,N/A（无内部 Critic）,PASS,20,,,PASS,答案直接回应了两问：用表格数据说明轻/重度用户在评分数量、活跃年数上的差异，并指出平均分接近说明区分的是活跃度；也解释了轮廓系数衡量簇内紧密度与簇间分离度、取值越高越好，且与证据中K=2~8最高、K=1无法定义、上界8兼顾可解释性一致。未夸大或遗漏关键限制。,True,True,5.13,0,"结论： K=2 时轮廓系数 0.4077 为 K=2~8 中最高，因此选 K=2；分群主要区分活跃度，而非评分高低。
+
+差异：
+- 轻度用户 532 人（87.2%）：平均评分 106.9 条、活跃 1.1 年、平均分 3.67。
+- 重度用户 78 人（12.8%）：平均评分 563.9 条、活跃 5.6 年、平均分 3.58。
+- 两组平均分接近，说明分群识别的是活跃度差异；约 13% 的重度用户贡献约 44% 的评分。
+
+轮廓系数为何能选 K： 它衡量样本与自身簇的紧密度相对与最近邻簇的分离度，取值越高说明簇内越紧凑、簇间越分离。K-Means 基于欧氏距离，特征经 StandardScaler 标准化后，该指标可直接比较不同 K 的聚类质量；K=1 无法定义，故下界取 2，上界 8 兼顾业务可解释性。",,1
+R12,结合 K-Means 分群结果说明轻度和重度用户的差异，并解释为什么轮廓系数可以用来选 K。,multi_serial,mining|rag,mining|rag,mining|rag,mining|rag,True,PASS,PASS,16,,,PASS,答案准确引用了K=2、轮廓系数0.4077及两组人数/均值，正确指出差异在活跃度而非评分，并合理解释轮廓系数用于选K及K=1下界；未夸大结论，与证据一致。,True,True,21.554,0,"K-Means 在 K=2 时轮廓系数最高 0.4077，据此把用户分为两类：轻度用户 532 人（占 87.2%），人均评分 106.87 条、活跃 1.07 年、平均分 3.67；重度用户 78 人（占 12.8%），人均评分 563.88 条、活跃 5.56 年、平均分 3.58。两组平均分接近，差异主要在活跃度而非评分高低。
+
+轮廓系数衡量簇内紧密、簇间分离的程度，取值越高说明分群越清晰，因此可在 K=2~8 中比较并选最高点；K=1 无聚类意义且无法定义该指标，故下界取 2。",,1
+R12,结合 K-Means 分群结果说明轻度和重度用户的差异，并解释为什么轮廓系数可以用来选 K。,multi_parallel,mining|rag,mining|rag,mining|rag,mining|rag,True,PASS,PASS,17,,,PASS,答案直接回答了差异（人数、评分量、活跃年数、平均分接近）并正确解释轮廓系数用于选K（簇内紧密/簇间分离、取最高点、K=1无法定义），与证据一致；还恰当保留了重度组小样本限制，未夸大。,True,True,16.83,0,"K-Means 在 K=2 时轮廓系数最高 0.4077，据此把用户分为两类：轻度用户 532 人（占 87.2%），人均评分 106.87 条、活跃 1.07 年；重度用户 78 人（占 12.8%），人均评分 563.88 条、活跃 5.56 年。两组平均评分接近（3.67 对 3.58），说明分群区分的是活跃度，而非评分高低。
+
+轮廓系数衡量簇内紧密、簇间分离的程度，取值越高聚类质量越好，因此可在 K=2~8 中选最高点定 K；K=1 无聚类意义且无法定义该指标。注意重度组规则仅 5–14 人支撑，属小样本探索性发现。",,1
+R13,请介绍 MovieLens 数据集概况，并用评分数据库核实总评分数、用户数和电影数。,single,rag|sql,,sql,sql,False,N/A（无内部 Critic）,FAIL,10,0|18|20,,PASS,答案直接回应问题，引用的总评分数100836、用户数610、电影数9724/9742均与证据一致，并正确区分了有评分记录的电影数与电影表总数，未夸大或遗漏关键限制。,False,False,5.576,0,"MovieLens 数据集概况（已用数据库核实）：
+
+- 评分表 ratings：共 100836 条评分，来自 610 位用户，覆盖 9724 部电影（有评分记录的）。
+- 电影表 movies：共 9742 部电影，含英文片名和 20 个类型 0/1 标记列（Action、Comedy、Drama、Horror 等）。
+- 评分表字段：userId、movieId、rating、timestamp、rated_at、rated_year。
+
+注意：movies 表 9742 部，但实际被评分的只有 9724 部，说明有 18 部电影无任何评分记录。",,1
+R13,请介绍 MovieLens 数据集概况，并用评分数据库核实总评分数、用户数和电影数。,multi_serial,rag|sql,rag|sql,rag|sql,rag|sql,True,PASS,PASS,25,,,PASS,答案直接回应了概况介绍与数据库核实要求，所有数字（100836评分、610用户、9742电影、9724被评分、18无评分、9737片名、平均3.502、人均165.3、最少20最多2698、评分分布）均与SQL和RAG证据一致，未夸大或遗漏关键限制。,True,True,21.239,0,"MovieLens ml-latest-small 是经典电影评分数据集，评分范围 0.5–5.0 分，时间跨度为 1996-03-29 至 2018-09-24，共 22 年真实行为数据，稀疏度 98.30%。
+
+评分数据库核实结果：总评分数 100836 条，用户数 610 人，电影总数 9742 部（其中被评分的电影 9724 部，有 18 部电影无评分；不同片名 9737 个）。平均评分 3.50 分。用户人均评分 165.30 条，最少 20 条、最多 2698 条。
+
+评分分布查询返回全部 10 个评分档（非 Top-N），其中 4.0 分最多 26818 条，0.5 分最少 1370 条。",,1
+R13,请介绍 MovieLens 数据集概况，并用评分数据库核实总评分数、用户数和电影数。,multi_parallel,rag|sql,rag|sql,rag|sql,rag|sql,True,PASS,PASS,20,,,PASS,答案直接回应问题，核心数字（100836 评分、610 用户、9742 电影、9724 有评分影片、18 部无评分、评分范围与时间跨度）均与 SQL 和 RAG 证据一致；区分了电影表总数与有评分影片数，未夸大或遗漏关键限制。,True,True,16.069,0,"MovieLens ml-latest-small 是真实用户观影评分数据集，评分范围 0.5–5.0 分，时间跨度为 1996-03-29 至 2018-09-24。数据库核实结果：总评分数 100836 条，用户数 610 人，有评分记录的影片数 9724 部，平均评分 3.50 分。
+
+电影表共 9742 部电影，其中不同片名 9737 个；有 18 部电影尚无评分。评分分布查询返回全部 10 个评分档位，其中 4.0 分最多（26818 条），0.5 分最少（1370 条）。",,1
+R05,决策树预测宽容型评分者的准确率是多少？最重要的特征是什么？,single,mining,,mining,mining,True,N/A（无内部 Critic）,PASS,13,,,PASS,答案完整引用了交叉验证与测试集准确率、特征重要性排序及局限，结论与证据一致，无夸大或遗漏关键限制。,True,True,3.299,0,"决策树预测“宽容型评分者”（平均评分≥3.5）的准确率：5 折交叉验证为 70.3% ± 1.7%（多数类基线 65.2%，提升约 5pp）；测试集准确率 66.4%（n=122，树深 4，14 个叶节点）。
+
+最重要的特征是 std_rating（评分标准差），重要性 0.58，其后是 log_n_ratings（0.30）和 first_year（0.11）。规律是：评分波动大、爱憎分明的用户更偏严格且更活跃。局限：纯行为特征对评分严格度解释力有限，缺少“品味”维度。",,2
+R05,决策树预测宽容型评分者的准确率是多少？最重要的特征是什么？,multi_serial,mining,mining|rag,mining|rag,mining|rag,True,PASS,PASS,10,,,PASS,答案直接回答了准确率和最重要特征，数值与证据一致（70.3%±1.7%、66.4%、std_rating 0.58），并如实提及基线、样本量和局限，无夸大或遗漏关键限制。,True,True,8.51,0,决策树预测“宽容型评分者”的 5 折交叉验证准确率为 70.3% ± 1.7%，多数类基线为 65.2%，提升约 5 个百分点；测试集准确率为 66.4%（n=122）。最重要的特征是评分标准差 std_rating（重要性 0.58），其次是 log_n_ratings（0.30）和 first_year（0.11）。规律是评分波动大的用户更严格、更活跃。局限在于纯行为特征解释力有限，缺少“品味”维度。,,2
+R05,决策树预测宽容型评分者的准确率是多少？最重要的特征是什么？,multi_parallel,mining,mining|rag,mining|rag,mining|rag,True,PASS,PASS,10,,,PASS,答案直接给出交叉验证准确率70.3%±1.7%和测试集66.4%，并列出特征重要性std_rating 0.58最高，与证据一致；同时提及基线、规律和局限，未夸大。,True,True,5.635,0,决策树预测“宽容型评分者”的 5 折交叉验证准确率为 70.3% ± 1.7%，多数类基线为 65.2%，提升约 5 个百分点；测试集准确率为 66.4%（n=122）。最重要的特征是 std_rating（重要性 0.58），其次是 log_n_ratings（0.30）和 first_year（0.11）。规律是评分波动大的用户更严格、更活跃。局限在于纯行为特征解释力有限，缺少“品味”维度。,,2
+R06,重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？,single,mining,,mining|rag,mining|rag,True,N/A（无内部 Critic）,FAIL,9,0.818|1.80,,PASS,答案直接回应差异与跨组稳定规则，所列稳定规则、置信度对比、组独有规则族及小样本限制均与证据一致，无夸大或遗漏关键限制。,False,False,3.04,0,"结论：核心规则跨组稳定，差异主要在信号纯度与组独有规则族。
+
+- 跨组稳定：Romance→Comedy+Drama（重度 lift 1.79、轻度 1.80）、Romance→Comedy、Drama+Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama 在两组都出现，验证全量规则稳健。
+- 重度组更纯：Romance→Comedy 置信度 1.000（轻度 0.811）；Drama+Romance→Comedy 1.000（轻度 0.818）。
+- 组独有：重度组有 Crime 复合规则族（Crime→Comedy、Comedy+Crime→Drama 等）；轻度组有 Thriller 系规则（Crime+Thriller→Drama、Comedy+Thriller→Drama）。
+- 注意：重度组 78 人、每条规则仅 5–14 人支撑，属小样本探索性发现。",,2
+R06,重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？,multi_serial,mining,mining|rag,mining|rag,mining|rag,True,PASS,PASS,12,,,PASS,答案直接回应差异与跨组稳定规则，结论与证据一致：独有规则族、共有规则、confidence 对比及小样本限制均有据；对“信号更纯”的谨慎修正合理，并指出人数口径差异，未夸大。,True,True,19.618,1,重度组与轻度组的规则差异主要在独有规则族：重度组有 Crime 复合规则族（如 Crime→Drama，confidence=1.0000、lift=1.1642），轻度组有 Thriller 系规则（如 Crime+Thriller→Drama，lift=1.2182）及独有的 Romance→Drama（lift=1.2175）。跨组稳定的是 Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama 等共有规则，而非笼统的“情感三角”。重度组 Romance→Comedy 的 confidence=1.0000 高于轻度组 0.8105，但重度组仅 78 人、每条规则约 5–14 人支撑，属小样本探索性发现，不宜过度解读为“信号更纯”。另需注意人数口径差异：分群表轻度组 532 人，rag 文档记为 531 人、共 609 事务。,,2
+R06,重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？,multi_parallel,mining,mining|rag,mining|rag,mining|rag,True,PASS,PASS,8,,,PASS,答案直接回应差异与跨组稳定规则，数值与证据一致（Romance→Comedy 置信度 1.000 vs 0.811；Sci-Fi→Action lift 1.3265 vs 1.7428），并正确标注重度组小样本限制。轻度组人数写作 532 与 cluster_profiles 一致，虽 rag 文档写 531，但以证据表为准可接受。,True,True,11.845,1,"结论：两组共享情感片三角与 Sci-Fi→Action 核心规则，但重度组信号更纯、独有 Crime 复合规则族，轻度组独有 Thriller 系规则。
+
+差异：重度组 Romance→Comedy 的 confidence 为 1.000，轻度组为 0.811；轻度组 Sci-Fi→Action 的 lift 为 1.7428，高于重度组的 1.3265。重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。
+
+跨组稳定：情感三角（Romance、Comedy、Drama）与 Sci-Fi→Action 在两组均出现，验证了全量规则稳健性。
+
+注意：重度组 78 人、轻度组 532 人；重度组每条规则仅 5–14 人支撑，属小样本探索性发现。",,2
+R07,为什么 K-Means 选 K=2？PCA 为什么不参与聚类训练？,single,rag,,rag,rag,True,N/A（无内部 Critic）,PASS,20,,,PASS,答案直接回答两个问题，K=2 依据轮廓系数 0.4077 在 K=2~8 最高，并说明下界/上界理由；PCA 不参与训练的原因与证据一致（仅可视化、避免丢失低方差维度、保持可解释性）。结论未夸大或遗漏关键限制。,True,True,3.538,0,"结论：K=2 是轮廓系数在 K=2~8 中的最优解；PCA 只做可视化，不参与训练。
+
+K=2 的依据
+- 在 K=2 到 8 的搜索范围内，K=2 的轮廓系数为 0.4077，最高。
+- 下界取 2：K=1 无聚类意义，且轮廓系数无法定义；上界取 8 是考虑业务可解释性。
+- 结果可解释：轻度用户 532 人（87.2%）、重度用户 78 人（12.8%），两组平均分 3.67 与 3.58 接近，说明分群识别的是活跃度差异而非评分高低。
+
+PCA 不参与训练的原因
+- 聚类特征为 4 维：log_n_ratings、mean_rating、std_rating、log_active_years，经 StandardScaler 标准化后直接聚类。
+- PCA 仅把 4 维投影到 2 维用于可视化。先降维再聚类会丢失低方差但有区分度的维度，且聚类中心失去业务可解释性。",,2
+R07,为什么 K-Means 选 K=2？PCA 为什么不参与聚类训练？,multi_serial,rag,rag,rag,rag,True,PASS,PASS,13,,,PASS,答案直接回答了 K=2 的依据（轮廓系数最高、K=1 无意义、上界受可解释性约束）和 PCA 不参与训练的原因（避免丢失低方差维度、保持中心可解释性），与证据一致，未夸大或遗漏关键限制。,True,True,6.426,0,K=2 是因为它在 K=2 到 8 中轮廓系数最高（0.4077），且 K=1 无聚类意义、轮廓系数无法定义，上界 8 则受业务可解释性约束。PCA 只用于把 4 维特征投影到 2 维做可视化，不参与训练：先降维再聚类会丢失低方差但有区分度的维度，聚类中心也会失去业务可解释性。聚类实际使用 4 个特征并做 StandardScaler 标准化。分群结果：轻度用户 532 人占 87.2%，重度用户 78 人占 12.8%，两组平均分接近，识别的是活跃度差异。,,2
+R07,为什么 K-Means 选 K=2？PCA 为什么不参与聚类训练？,multi_parallel,rag,rag,rag,rag,True,PASS,PASS,8,,,PASS,答案直接回答了 K=2 的依据（轮廓系数最高、K=1 无意义、上界受可解释性约束）和 PCA 不参与训练的原因（仅用于可视化、避免丢失低方差维度与可解释性），与证据一致，未夸大或遗漏关键限制。,True,True,7.527,0,K=2 是因为在 K=2 到 8 的候选中轮廓系数最高（0.4077），且 K=1 无聚类意义、轮廓系数无法定义，上界 8 则受业务可解释性约束。PCA 只用于把 4 维特征投影到 2 维做可视化，不参与训练：先降维再聚类会丢失低方差但有区分度的维度，聚类中心也会失去业务可解释性。聚类前必须用 StandardScaler 标准化，因为 K-Means 基于欧氏距离，量纲差异会主导距离计算。,,2
+R08,关联规则里的 lift 和 support 怎么理解？为什么不能只看 confidence？,single,rag,,mining|rag,mining|rag,True,N/A（无内部 Critic）,PASS,8,,,PASS,答案直接解释了 support、confidence、lift 的定义，并正确说明不能只看 confidence 的原因（后项本身热门导致虚高），与证据中 lift=confidence/P(B)、按 lift 排序、Crime→Drama 高 confidence 低 lift 的示例一致；数值引用准确，未夸大。,True,True,3.671,0,"结论：support 看“这条规则覆盖多少人”，lift 看“前项是否真的提升了后项概率”，confidence 只说明后项概率高，可能只是后项本身热门，所以不能只看它。
+
+- support：前项与后项同时出现的事务占比。如 Romance→Comedy+Drama 为 0.1363，即 609 条事务中约 83 人（知识库口径）。
+- confidence：前项出现时后项出现的条件概率。如 Sci-Fi→Action 为 0.80。
+- lift：confidence ÷ 后项自身概率，>1 才是正相关。Sci-Fi→Action lift 1.68，说明科幻用户偏好动作片是真实放大，而非动作片本来就普遍。
+
+项目按 lift 排序而非 confidence：Crime→Drama confidence 高达 0.94，但 lift 仅 1.21，因为 Drama 本身太热门，高 confidence 有虚高成分。",,2
+R08,关联规则里的 lift 和 support 怎么理解？为什么不能只看 confidence？,multi_serial,rag,rag,rag,rag,True,PASS,PASS,15,,,PASS,答案直接解释了 support、lift、confidence 的含义，并说明不能只看 confidence 的原因（后项热门导致高 confidence 但 lift 低），与证据中 lift=confidence/P(B)、按 lift 排序、支撑人数=support×609 及典型规则数据一致，未夸大或遗漏关键限制。,True,True,10.989,0,"不能只看 confidence，因为高 confidence 可能只是后项本身热门；lift 衡量正相关，support 衡量规则覆盖度。
+
+- support：规则在事务中的覆盖比例。本次共 609 条事务，支撑人数=support×609。
+- lift：lift=confidence/P(B)，大于 1 才是正相关，因此规则按 lift 而非 confidence 排序。
+- confidence：只说明前项出现时后项出现的比例，未扣除后项自身热度。
+
+典型规则：Romance→Comedy+Drama，confidence 0.78、lift 1.79、83 人支撑；Sci-Fi→Action，confidence 0.80、lift 1.68、40 人支撑；Crime→Drama，confidence 0.94 但 lift 仅 1.21。min_support=0.05 时共挖出 13 条规则（lift>1 且 confidence≥0.5）。",,2
+R08,关联规则里的 lift 和 support 怎么理解？为什么不能只看 confidence？,multi_parallel,rag,rag,rag,rag,True,PASS,PASS,15,,,PASS,答案直接解释了 lift、support 及不能只看 confidence 的原因，且所有数值与证据一致，未夸大或遗漏关键限制。,True,True,8.18,0,不能只看 confidence，因为高 confidence 可能只是后项本身热门；lift = confidence / P(B)，大于 1 才表示正相关，所以规则应按 lift 排序。support 是规则在事务中的覆盖比例，支撑人数 = support × 事务数 609。本次 min_support=0.05 共挖出 13 条规则（lift>1 且 confidence≥0.5），例如 Romance→Comedy+Drama 的 confidence 为 0.78、lift 为 1.79、83 人支撑；Sci-Fi→Action 的 confidence 为 0.80、lift 为 1.68、40 人支撑。事务按每位用户评分≥4 的电影中前 3 个类型构建，共 609 条。,,2
+R09,LangGraph 并行分支写同一个 State 字段为什么会冲突？reducer 怎么解决？,single,rag,,rag,rag,True,N/A（无内部 Critic）,PASS,0,,,PASS,答案直接回答了冲突原因（共享 State 字段的覆盖式写入无法确定合并顺序，触发 InvalidUpdateError）和 reducer 方案（evidences 字典合并、trace 用 operator.add 累加、分支只返回增量），与证据一致，并保留了“逻辑并行、物理串行”的关键限制，无夸大或遗漏。,True,True,4.085,0,"结论：LangGraph 的 State 是共享字典，并行分支各自返回对同一字段的更新时，默认的覆盖式写入无法确定合并顺序，因此会抛出 `InvalidUpdateError`；解决办法是为该字段声明 reducer，让多个分支的增量按规则合并。
+
+细节（来自项目 W5 编排层）：
+- 冲突原因：Planner 输出 JSON 路由后，条件边会扇出到多个专家，多个专家同时写同一个 State 字段，就会触发 `InvalidUpdateError`。
+- reducer 方案：`evidences` 用字典合并 reducer，`trace` 用 `operator.add` 做列表累加；每个分支只返回增量，不返回全量。
+- 补充：W5 的扇出是逻辑并行，在同步 SDK 下物理上仍串行。",,2
+R09,LangGraph 并行分支写同一个 State 字段为什么会冲突？reducer 怎么解决？,multi_serial,rag,rag,rag,rag,True,PASS,PASS,0,,,PASS,答案直接回答了冲突原因（共享 State 字段并发覆盖触发 InvalidUpdateError）和 reducer 解决方案（evidences 字典合并、trace operator.add、分支只返回增量），与证据一致，并补充了逻辑并行/物理串行的关键限制，无夸大或遗漏。,True,True,5.721,0,"LangGraph 的 State 是共享字典，多个专家分支同时写同一个字段时，会触发 InvalidUpdateError，因为默认更新策略不允许并发覆盖同一键。
+
+解决办法是给该字段配置 reducer：evidences 用字典合并 reducer，trace 用 operator.add 列表累加，每个分支只返回增量而非全量，从而把并发写变成可合并的增量更新。此外，W5 的扇出只是逻辑并行，同步 SDK 下物理上仍串行。",,2
+R09,LangGraph 并行分支写同一个 State 字段为什么会冲突？reducer 怎么解决？,multi_parallel,rag,rag,rag,rag,True,PASS,PASS,0,,,PASS,答案直接回应了冲突原因（共享 State 字段并发写触发 InvalidUpdateError）和 reducer 解决方式（各分支返回增量、由 reducer 合并），并准确引用了 evidences 字典合并、trace 用 operator.add 的具体证据，同时保留了逻辑并行/物理串行的关键限制，无夸大或遗漏。,True,True,5.19,0,"结论：LangGraph 的 State 是共享字典，多个并行分支同时写同一个字段时，会触发 `InvalidUpdateError`。解决办法是为该字段配置 reducer，让各分支只返回增量，由 reducer 负责合并。
+
+细节：在 W5 中，`evidences` 使用字典合并 reducer，`trace` 使用 `operator.add` 做列表累加，每个分支只返回增量，从而避免冲突。需要注意，W5 的扇出只是逻辑并行，在同步 SDK 下物理上仍然串行。",,2
+R10,给我一份关于 MovieLens 用户偏好模式的简报，并说明挖掘方法。,single,mining|rag,,mining|rag,mining|rag,True,N/A（无内部 Critic）,FAIL,38,1.31|数字 2 的指标与「K-Means·silhouette」不一致,,PASS,答案直接回应简报与方法要求，数据与证据一致：K=2、轮廓系数0.4077、两组人数/均分/活跃度、13%贡献约44%、Apriori规则数值、决策树准确率与特征重要性均准确。方法要点（top-3类型签名、609事务、userId=442过滤、按lift排序）与局限说明也完整。仅测试集准确率66.4%未提及，但不影响核心结论。,False,False,3.312,0,"MovieLens 用户偏好简报
+
+结论：用户差异主要体现在活跃度，而非评分高低；类型偏好上，情感片组合与科幻动作组合最稳定。
+
+1. 用户分群（K-Means，K=2，轮廓系数 0.4077，K 扫描 2~8 中最优）
+- 轻度用户 532 人（87.2%）：人均 106.9 条评分、活跃 1.1 年、均分 3.67
+- 重度用户 78 人（12.8%）：人均 563.9 条、活跃 5.6 年、均分 3.58
+- 两组均分接近，说明分群识别的是活跃度差异；约 13% 重度用户贡献约 44% 评分。
+
+2. 类型关联（Apriori，min_support=0.05，609 条事务，13 条有效规则）
+- Romance → Comedy+Drama：confidence 0.78、lift 1.79
+- Sci-Fi → Action：confidence 0.80、lift 1.68
+- Adventure → Action：lift 1.31；Crime → Drama：confidence 0.94、lift 1.21
+
+3. 评分严格度（决策树，树深 4）
+5 折交叉验证准确率 70.3%±1.7%（基线 65.2%）；重要性：评分标准差 0.58 > 评分数 0.30 > 首评年份 0.11。评分波动大的用户更严格。
+
+方法要点：事务取每位用户 4 分以上电影中出现最多的前 3 个类型（共 609 条，userId=442 被过滤）；规则按 lift 排序，避免热门类型虚高。局限：行为数据缺少“品味”维度，严格度解释力有限。",,2
+R10,给我一份关于 MovieLens 用户偏好模式的简报，并说明挖掘方法。,multi_serial,mining|rag,mining|rag,mining|rag,mining|rag,True,PASS,PASS,28,,,PASS,答案直接回应了简报与方法说明，分群、关联规则、决策树数值均与证据一致，并保留了轮廓系数、基线对比、测试集准确率及“缺少品味维度”等关键限制；未发现夸大或遗漏关键限制。,True,True,16.061,0,"结论：MovieLens 用户呈明显“二八分化”：绝大多数是轻度用户，少数重度用户贡献了主要活跃度；类型偏好上，Romance 与 Comedy、Drama 强关联，Sci-Fi 与 Action 强关联。
+
+分群（K-Means，K=2，轮廓系数 0.41）：轻度用户 532 人（占 87.2%），人均评分 106.87 条、活跃 1.07 年、均分 3.67；重度用户 78 人（占 12.8%），人均 563.88 条、5.56 年、均分 3.58。
+
+关联规则（609 条事务）：Romance→Comedy+Drama（支持度 0.1363，置信度 0.7757，提升度 1.7894）最强；Sci-Fi→Action 置信度 0.8000。
+
+决策树：预测“宽容型评分者”，5 折交叉验证准确率 70.3%±1.7%，高于基线 65.2%；测试集 66.4%（n=122）。std_rating 重要性 0.58 居首。
+
+方法：K-Means 聚类（K 扫描 2~8）、Apriori 关联规则（min_support=0.05）、决策树分类（树深 4），辅以 RAG 文档检索。局限：纯行为特征缺少“品味”维度。",,2
+R10,给我一份关于 MovieLens 用户偏好模式的简报，并说明挖掘方法。,multi_parallel,mining|rag,mining|rag,mining|rag,mining|rag,True,PASS,PASS,18,,,PASS,答案直接回应了简报与方法要求：分群结论与证据一致（K=2、轮廓系数0.4077、人数与平均分均吻合），关联规则与决策树指标引用准确，并明确保留了测试集准确率偏低、解释力有限、无品味维度等关键限制，未夸大结论。,True,True,14.806,1,"结论：MovieLens 用户结构主要体现活跃度差异，而非品味差异。 K-Means 最佳 K=2，轮廓系数 0.41；轻度用户 532 人（87.2%），重度用户 78 人（12.8%），两组平均评分接近（3.67 vs 3.58），说明分群识别的是活跃度而非高分低分用户。
+
+方法：K-Means 在 K=2~8 中扫描取最优；关联规则挖掘得到 609 条规则（全量用户事务），强规则如 Crime→Drama 置信度 0.9355、Romance→Comedy 0.8318；决策树预测宽容型评分者，5 折交叉验证 70.3%±1.7%，但测试集仅 66.4%（n=122），且证据指出纯行为特征解释力有限、数据无“品味”维度，效果不宜夸大。",,2
+R11,评分超过 4.0 且至少有 100 人评价的电影有多少部？同时说明 ratings 表有哪些字段。,single,rag|sql,,sql,sql,False,N/A（无内部 Critic）,PASS,4,,,PASS,答案直接给出47部，与查询结果一致；完整列出ratings表6个字段及类型，与证据一致，无夸大或遗漏。,False,False,2.734,0,"结论：共 47 部电影平均评分超过 4.0，且评价人数不少于 100 人。
+
+ratings 表字段（6 个）：userId（BIGINT）、movieId（BIGINT）、rating（DOUBLE）、timestamp（BIGINT）、rated_at（TIMESTAMP）、rated_year（INTEGER）。",,2
+R11,评分超过 4.0 且至少有 100 人评价的电影有多少部？同时说明 ratings 表有哪些字段。,multi_serial,rag|sql,rag|sql,rag|sql,rag|sql,True,PASS,PASS,8,,,PASS,答案直接给出47部，与SQL结果一致；ratings表6个字段及类型/含义与SQL列清单和字典文档一致，未夸大或遗漏关键限制。,True,True,7.368,0,"评分超过 4.0 且至少有 100 人评价的电影共有 47 部（查询返回 1 行）。
+
+ratings 表共 6 个字段：userId（用户ID）、movieId（电影ID）、rating（评分，0.5–5.0）、timestamp（Unix 时间戳）、rated_at（评分时间）、rated_year（评分年份）。该表共 100,836 行评分记录。",,2
+R11,评分超过 4.0 且至少有 100 人评价的电影有多少部？同时说明 ratings 表有哪些字段。,multi_parallel,rag|sql,rag|sql,rag|sql,rag|sql,True,PASS,PASS,10,,,PASS,答案直接给出 47 部，与 SQL 结果一致；ratings 表 6 个字段及类型/含义与查询结果和字典一致，无夸大或遗漏关键限制。,True,True,6.685,0,"评分超过 4.0 且至少有 100 人评价的电影共有 47 部（查询结果共 1 行，当前展示 1 行）。
+
+ratings 表共有 6 个字段（查询结果共 6 行，当前展示 6 行）：userId（用户ID）、movieId（电影ID）、rating（评分，0.5–5.0）、timestamp（Unix 时间戳）、rated_at（评分时间）、rated_year（评分年份）。",,2
+R12,结合 K-Means 分群结果说明轻度和重度用户的差异，并解释为什么轮廓系数可以用来选 K。,single,mining|rag,,mining|rag,mining|rag,True,N/A（无内部 Critic）,PASS,20,,,PASS,答案直接回答了差异与选K理由，数值与证据一致（K=2、轮廓系数0.4077、532/78人、106.9/563.9条、1.1/5.6年、3.67/3.58、约13%贡献约44%），并正确说明轮廓系数衡量紧密度与分离度、无需标签，且提及K下界2与上界8的业务限制，无夸大或遗漏关键限制。,True,True,3.307,0,"结论： K=2 时轮廓系数 0.4077 为 K=2~8 中最高，因此选 K=2；分群主要区分活跃度，而非评分高低。
+
+差异：
+- 轻度用户 532 人（87.2%）：平均评分 106.9 条、活跃 1.1 年、平均分 3.67。
+- 重度用户 78 人（12.8%）：平均评分 563.9 条、活跃 5.6 年、平均分 3.58。
+- 两组平均分接近，说明分群识别的是活跃度差异；约 13% 的重度用户贡献约 44% 的评分。
+
+轮廓系数为何能选 K： 它衡量样本与自身簇的紧密度相对与最近邻簇的分离度，取值越高说明簇内越紧凑、簇间越分离，且无需真实标签，适合无监督选 K。K=1 无法定义、无聚类意义，故下界取 2；上界 8 考虑业务可解释性。",,2
+R12,结合 K-Means 分群结果说明轻度和重度用户的差异，并解释为什么轮廓系数可以用来选 K。,multi_serial,mining|rag,mining|rag,mining|rag,mining|rag,True,PASS,PASS,19,,,PASS,答案直接回答了差异与轮廓系数选K的理由，数值与证据一致，并正确补充了重度组规则小样本的限制；轮廓系数定义属通用方法说明，未与证据冲突。,True,True,15.928,0,"K-Means 在 K=2 时轮廓系数最高 0.4077，据此把用户分为两类：轻度用户 532 人（占 87.2%），人均评分 106.87 条、活跃 1.07 年、平均分 3.67；重度用户 78 人（占 12.8%），人均评分 563.88 条、活跃 5.56 年、平均分 3.58。两组平均分接近，说明分群区分的是活跃度，而不是评分高低。
+
+轮廓系数衡量样本与自身簇的紧密度及与最近邻簇的分离度，取值越高表示簇内越紧凑、簇间越分明，因此可用于比较不同 K 的聚类质量；K 扫描 2~8 中 K=2 得分最高，故选 K=2。需注意：关联规则基于全量 609 条事务，重度组规则每条仅 5–14 人支撑，属小样本探索性发现。",,2
+R12,结合 K-Means 分群结果说明轻度和重度用户的差异，并解释为什么轮廓系数可以用来选 K。,multi_parallel,mining|rag,mining|rag,mining|rag,mining|rag,True,PASS,PASS,16,,,PASS,答案直接回答了差异与轮廓系数选K的理由，数据与证据一致（K=2、0.4077、人数/占比/均值均吻合），并正确指出分群反映活跃度而非评分高低，还补充了小样本限制，无夸大或遗漏关键限制。,True,True,9.623,0,"K-Means 在 K=2 时轮廓系数最高 0.4077，据此把用户分为轻度与重度两组。差异主要体现在活跃度：轻度用户 532 人、占 87.2%，人均评分 106.87 条、活跃 1.07 年；重度用户 78 人、占 12.8%，人均评分 563.88 条、活跃 5.56 年。两组平均评分接近（3.67 与 3.58），说明分群识别的是活跃度而非偏好高低。
+
+轮廓系数衡量簇内紧密、簇间分离的程度，值越高聚类质量越好，因此可在 K=2~8 中比较并选最高点作为 K。需注意重度组规则仅 5–14 人支撑，属小样本探索性发现。",,2
+R13,请介绍 MovieLens 数据集概况，并用评分数据库核实总评分数、用户数和电影数。,single,rag|sql,,sql,sql,False,N/A（无内部 Critic）,FAIL,10,0|18|20,,PASS,答案直接回应了概况与核实要求，数字与证据完全一致，并正确区分了被评分电影数（9724）与电影总数（9742），未夸大或遗漏关键限制。,False,False,2.937,0,"MovieLens 数据集包含用户对电影的评分记录，以及电影元数据（片名和 20 个类型 0/1 标记列）。
+
+数据库核实结果：
+- 总评分数：100836 条
+- 用户数：610 人
+- 被评分的电影数：9724 部
+- movies 表电影总数：9742 部
+
+也就是说，9742 部电影中有 9724 部获得过评分，另有 18 部没有评分记录。",,2
+R13,请介绍 MovieLens 数据集概况，并用评分数据库核实总评分数、用户数和电影数。,multi_serial,rag|sql,rag|sql,rag|sql,rag|sql,True,FAIL,FAIL,24,13.1%|19.88%|26.6%,,PASS,答案直接回应问题，核心数字（100836评分、610用户、9742电影、9724有评分影片、18部无评分、平均3.502）均与SQL证据一致；正确区分了movies表总数与有评分影片数，并如实说明年份统计仅展示前15/23行，未夸大或遗漏关键限制。,False,False,13.994,1,"MovieLens ml-latest-small 是真实用户观影评分数据集，评分范围 0.5–5.0 分，时间跨度为 1996-03-29 至 2018-09-24，共 22 年，数据无缺失值。
+
+经评分数据库核实：总评分数 100836 条，用户 610 人，有评分记录的影片 9724 部；movies 表共 9742 部电影（去重标题 9737 个），其中 18 部无任何评分。全库平均评分 3.50 分。
+
+评分分布上，4.0 分占比最高 26.6%，其次为 3.0 分 19.88% 和 5.0 分 13.1%。按年份统计的查询共返回 23 行，当前仅展示前 15 行，不代表全部年份。",,2
+R13,请介绍 MovieLens 数据集概况，并用评分数据库核实总评分数、用户数和电影数。,multi_parallel,rag|sql,rag|sql,rag|sql,rag|sql,True,PASS,PASS,21,,,PASS,答案直接回应概况与核实要求，数字与SQL/文档证据一致（100836评分、610用户、9742电影、9724有评分、18无评分、平均3.502≈3.50、4分26.6%最多、3分19.88%次之），并明确说明年份统计仅展示前15行、不代表全部，未夸大或遗漏关键限制。,True,True,12.052,1,"MovieLens ml-latest-small 是真实用户观影评分数据集，评分范围 0.5–5.0 分，时间跨度 1996-03-29 至 2018-09-24，矩阵稀疏度 98.30%，数据无缺失值。
+
+评分库核实：总评分数 100836、用户数 610、电影数 9742，平均评分 3.50；其中被评过分的电影 9724，无评分电影 18。评分分布以 4 分最多（26.6），3 分次之（19.88）。按年份统计共 23 行，当前仅展示前 15 行，不代表全部年份。",,2
+R05,决策树预测宽容型评分者的准确率是多少？最重要的特征是什么？,single,mining,,mining,mining,True,N/A（无内部 Critic）,PASS,13,,,PASS,答案直接给出交叉验证与测试集准确率，并列出特征重要性排序及局限，与证据完全一致，无夸大或遗漏关键限制。,True,True,1.572,0,"决策树预测“宽容型评分者”（平均评分≥3.5）的准确率：5 折交叉验证为 70.3% ± 1.7%（多数类基线 65.2%，提升约 5pp）；测试集准确率为 66.4%（n=122，树深 4，14 个叶节点）。
+
+最重要的特征是 std_rating（评分标准差），重要性为 0.58，其次是 log_n_ratings（0.30）和 first_year（0.11）。规律是：评分波动大、爱憎分明的用户更偏严格，也更活跃。局限在于，纯行为特征对评分严格度的解释力有限。",,3
+R05,决策树预测宽容型评分者的准确率是多少？最重要的特征是什么？,multi_serial,mining,mining|rag,mining|rag,mining|rag,True,PASS,PASS,9,,,PASS,答案直接给出交叉验证与测试集准确率、最重要特征 std_rating 及其重要性排序，并补充了基线、样本量和防泄漏限制；结论与证据一致，无夸大或关键遗漏。,True,True,8.632,0,决策树预测“宽容型评分者”的交叉验证准确率为 70.3% ± 1.7%，相比多数类基线 65.2% 提升约 5 个百分点；测试集准确率为 66.4%（n=122）。最重要的特征是评分标准差 std_rating（重要性 0.58），其次是 log_n_ratings（0.30）和 first_year（0.11）。规律是评分波动大的用户平均分更低、更严格。需注意：纯行为特征解释力有限，且 mean_rating 仅用于构造标签、未进入特征，以防泄漏。,,3
+R05,决策树预测宽容型评分者的准确率是多少？最重要的特征是什么？,multi_parallel,mining,mining|rag,mining|rag,mining|rag,True,PASS,PASS,10,,,PASS,答案直接回答了准确率（5折CV 70.3%±1.7%、测试集66.4%）和最重要特征（std_rating 0.58），并列出次重要特征、规律与局限，均与证据一致，无夸大或遗漏关键限制。,True,True,6.153,0,决策树预测“宽容型评分者”的 5 折交叉验证准确率为 70.3% ± 1.7%，多数类基线为 65.2%，提升约 5 个百分点；测试集准确率为 66.4%（n=122）。最重要的特征是 std_rating（重要性 0.58），其次是 log_n_ratings（0.30）和 first_year（0.11）。规律是：评分波动大、爱憎分明的用户平均分更低、更严格，也更活跃。局限在于，纯行为特征对评分严格度的解释力有限，行为数据中没有“品味”维度。,,3
+R06,重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？,single,mining,,mining|rag,mining|rag,True,N/A（无内部 Critic）,FAIL,8,0.818|1.80,,PASS,答案直接对比两组规则，所列跨组稳定规则、置信度差异和组独有规则均与证据一致，并保留了重度组小样本限制，无夸大。,False,False,2.458,0,"结论：两组共享“情感片三角”和“科幻→动作”两条核心规则，差异主要在信号纯度与独有规则族。
+
+- 跨组稳定：Romance→Comedy+Drama（重度 lift 1.79、轻度 1.80）、Drama+Romance→Comedy、Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama 均两组出现。
+- 重度组更纯：Romance→Comedy 置信度 1.000（轻度 0.811）；Drama+Romance→Comedy 1.000（轻度 0.818）。
+- 组独有：重度组有 Crime 复合规则族（Crime→Comedy、Comedy+Crime→Drama 等）；轻度组有 Thriller 系（Crime+Thriller→Drama、Comedy+Thriller→Drama）及 Romance→Drama。
+- 注意：重度组每条规则仅 5–14 人支撑，属小样本探索性发现。",,3
+R06,重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？,multi_serial,mining,mining|rag,mining|rag,mining|rag,True,PASS,PASS,6,,,PASS,答案直接回应差异与跨组稳定规则，数值与证据一致（Romance→Comedy 重度1.000/轻度0.811；独有规则族；情感三角与Sci-Fi→Action稳定），并准确标注重度组小样本限制。轻度组人数532与cluster_profiles一致，rag中531为文档内部不一致，答案采用聚类表数值合理。,True,True,13.912,1,两组规则整体结构相似，但重度组信号更纯、轻度组更分散。重度组 Romance→Comedy 的 confidence 为 1.000，轻度组为 0.811；重度组独有 Crime 复合规则族，轻度组独有 Thriller 系规则。跨组稳定的是情感三角（Romance 与 Comedy、Drama 互推）和 Sci-Fi→Action。需注意：重度组仅 78 人、每条规则约 5–14 人支撑，属小样本探索性发现；轻度组 532 人。,,3
+R06,重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？,multi_parallel,mining,mining|rag,mining|rag,mining|rag,True,FAIL,FAIL,10,610,,PASS,答案直接回应差异与跨组稳定规则，结论与证据一致：重度组Romance→Comedy置信度1.000对轻度0.811、Crime复合规则独有、Thriller系规则独有、情感三角与Sci-Fi→Action跨组稳定均有据。方法限制（lift排序、阈值、609事务、1人过滤、重度组5–14人小样本）也如实列出，无夸大。,False,False,13.497,1,"结论：两组规则结构相近，但重度组信号更纯、轻度组更分散；情感三角与 Sci-Fi→Action 跨组稳定，Crime 复合规则族为重度组独有，Thriller 系规则为轻度组独有。
+
+差异：重度组 Romance→Comedy confidence 1.000，轻度组 0.811（单条规则证据）；重度组独有 Comedy+Crime→Drama、Crime→Comedy、Crime+Drama→Comedy 等复合规则，轻度组独有 Crime+Thriller→Drama、Comedy+Thriller→Drama。
+
+跨组稳定：Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama 两组均出现且 lift>1。
+
+方法限制：规则按 lift 排序，阈值 min_support=0.05、confidence≥0.5；事务共 609 条，1 名用户被过滤，故与两组人数之和 610 略有出入；重度组每条规则仅 5–14 人支撑，属小样本探索性发现。",,3
+R07,为什么 K-Means 选 K=2？PCA 为什么不参与聚类训练？,single,rag,,rag,rag,True,N/A（无内部 Critic）,PASS,21,,,PASS,答案直接回应两问：K=2 依据轮廓系数 0.4077 在 K=2~8 最高，并说明下界/上界理由；PCA 仅用于可视化、不参与训练，理由为降维会丢失低方差有区分度维度且聚类中心失去可解释性。结论与证据一致，未夸大或遗漏关键限制。,True,True,2.994,0,"结论：K=2 是轮廓系数在 K=2~8 中的最优解；PCA 只用于 2 维可视化，不参与聚类训练。
+
+K=2 的依据
+- 在 K=2 到 8 的范围内逐一比较，K=2 的轮廓系数为 0.4077，最高。
+- 下界取 2：K=1 没有聚类意义，且轮廓系数无法定义；上界取 8 是出于业务可解释性考虑。
+- 结果可解释：轻度用户 532 人（87.2%），重度用户 78 人（12.8%）；两组平均分接近（3.67 与 3.58），说明分群识别的是活跃度差异，而不是高分或低分用户。
+
+PCA 不参与训练的原因
+- 聚类使用 4 个特征：log_n_ratings、mean_rating、std_rating、log_active_years，并经过 StandardScaler 标准化（K-Means 基于欧氏距离，量纲会主导距离）。
+- 如果先降维再聚类，会丢失低方差但有区分度的维度，且聚类中心会失去业务可解释性。
+- 因此 PCA 只把 4 维特征投影到 2 维，用于可视化。",,3
+R07,为什么 K-Means 选 K=2？PCA 为什么不参与聚类训练？,multi_serial,rag,rag,rag,rag,True,PASS,PASS,8,,,PASS,答案直接回答了 K=2 的依据（轮廓系数最高、K=1 无意义、上界受可解释性约束）和 PCA 不参与训练的原因（仅用于可视化、避免丢失低方差维度与可解释性），与证据一致；补充的标准化说明也来自证据，未夸大或遗漏关键限制。,True,True,5.029,0,K=2 是因为它在 K=2 到 8 中轮廓系数最高（0.4077），且 K=1 无聚类意义、轮廓系数无法定义，上界 8 则受业务可解释性约束。PCA 只用于把 4 维特征投影到 2 维做可视化，不参与训练：先降维再聚类会丢失低方差但有区分度的维度，聚类中心也会失去业务可解释性。聚类前必须用 StandardScaler 标准化，因为 K-Means 基于欧氏距离，量纲差异会主导距离计算。,,3
+R07,为什么 K-Means 选 K=2？PCA 为什么不参与聚类训练？,multi_parallel,rag,rag,rag,rag,True,PASS,PASS,8,,,PASS,答案直接回答了 K=2 的依据（轮廓系数最高、K=1 无意义、上界受可解释性约束）和 PCA 不参与训练的原因（仅用于可视化、避免丢失低方差维度与可解释性），与证据一致；补充的 StandardScaler 说明也来自证据，无夸大或遗漏关键限制。,True,True,5.642,0,K=2 是因为在 K=2 到 8 的候选中轮廓系数最高（0.4077），且 K=1 无聚类意义、轮廓系数无法定义，上界 8 则受业务可解释性约束。PCA 只用于把 4 维特征投影到 2 维做可视化，不参与训练：先降维再聚类会丢失低方差但有区分度的维度，聚类中心也会失去业务可解释性。聚类前必须用 StandardScaler 标准化，避免量纲主导欧氏距离。,,3
+R08,关联规则里的 lift 和 support 怎么理解？为什么不能只看 confidence？,single,rag,,mining|rag,mining|rag,True,N/A（无内部 Critic）,FAIL,9,68%,,PASS,答案直接解释了 support、confidence、lift 的含义，并正确指出不能只看 confidence 的原因（后项本身热门）。数值与证据一致：Romance→Comedy+Drama support 0.1363、约83人支撑；Sci-Fi→Action confidence 0.80、lift 1.68；Crime→Drama confidence 0.94、lift 1.21；lift=confidence/P(后项)、>1 为正相关；按 lift 排序。未夸大或遗漏关键限制。,False,False,2.726,0,"结论：support 看“这条规则覆盖多少人”，lift 看“前项是否真的提升了后项概率”，confidence 只说明后项条件概率高，可能只是后项本身热门，所以不能只看它。
+
+- support：前项与后项同时出现的事务占比。如 Romance→Comedy+Drama 为 0.1363，即 609 条事务中约 83 人支撑，代表规则覆盖面。
+- confidence：前项出现时后项出现的比例。如 Sci-Fi→Action 为 0.80。
+- lift = confidence / P(后项)，大于 1 才是正相关。Sci-Fi→Action lift 1.68，说明比随机高 68%；Crime→Drama confidence 0.94 很高，但 lift 仅 1.21，因为 Drama 本身太常见。
+
+项目按 lift 而非 confidence 排序，正是为避免被热门后项误导。",,3
+R08,关联规则里的 lift 和 support 怎么理解？为什么不能只看 confidence？,multi_serial,rag,rag,rag,rag,True,PASS,PASS,13,,,PASS,答案直接解释了 support、confidence、lift 的含义，并说明不能只看 confidence 的原因（高 confidence 可能只是后项热门），与证据中 lift=confidence/P(B)、大于 1 才是正相关、规则按 lift 排序一致；引用的 609 事务、83/40 人支撑、13 条规则及典型规则数值均与证据吻合，未夸大或遗漏关键限制。,True,True,7.63,0,"不能只看 confidence，因为高 confidence 可能只是后项本身热门；lift 衡量正相关，support 衡量规则覆盖度。
+
+- support：规则在事务中的覆盖比例。本次共 609 条事务，支撑人数=support×609；如 Romance→Comedy+Drama 有 83 人支撑。
+- confidence：前项出现时后项也出现的比例，但会被热门后项抬高。
+- lift：confidence/P(B)，大于 1 才是正相关，因此规则按 lift 而非 confidence 排序。
+
+本次 min_support=0.05 共挖出 13 条规则（lift>1 且 confidence≥0.5）。典型如 Sci-Fi→Action：confidence 0.80、lift 1.68、40 人支撑；Crime→Drama：confidence 0.94、lift 1.21。",,3
+R08,关联规则里的 lift 和 support 怎么理解？为什么不能只看 confidence？,multi_parallel,rag,rag,rag,rag,True,PASS,PASS,14,,,PASS,答案直接解释了 lift、support 及不能只看 confidence 的原因，与证据一致；引用的规则数值、13 条规则、支撑人数换算和按 lift 排序均准确，无夸大或关键遗漏。,True,True,8.969,0,"不能只看 confidence，因为高 confidence 可能只是后项本身热门；lift 衡量的是“比随机购买后项高出多少”，大于 1 才是正相关。support 表示规则在事务中出现的比例，支撑人数=support×事务数 609。
+
+本次 Apriori 在 min_support=0.05 下共挖出 13 条规则（lift>1 且 confidence≥0.5）。典型如 Romance→Comedy+Drama：confidence 0.78、lift 1.79、83 人支撑；Sci-Fi→Action：confidence 0.80、lift 1.68、40 人支撑；Crime→Drama：confidence 0.94、lift 1.21。规则按 lift 而非 confidence 排序。",,3
+R09,LangGraph 并行分支写同一个 State 字段为什么会冲突？reducer 怎么解决？,single,rag,,rag,rag,True,N/A（无内部 Critic）,PASS,0,,,PASS,答案直接回应冲突原因与 reducer 方案，结论与证据一致：共享 State 字段多分支写入触发 InvalidUpdateError，evidences 用字典合并、trace 用 operator.add，分支只返回增量；并保留“逻辑并行、物理串行”的限制，无夸大。,True,True,3.124,0,"结论：LangGraph 的 State 是共享字典，并行分支各自返回对同一字段的更新时，默认按“覆盖”合并，无法确定谁先谁后，于是抛出 `InvalidUpdateError`。解决办法是给该字段声明 reducer，把多个分支的更新按规则合并。
+
+细节（来自项目 W5 编排层）：
+- 冲突原因：Planner 输出 JSON 路由后，条件边扇出到多个专家节点，多个专家同时写同一个 State 字段，触发 `InvalidUpdateError`。
+- reducer 方案：`evidences` 用字典合并 reducer；`trace` 用 `operator.add` 做列表累加；每个分支只返回增量，不返回全量。
+- 补充：W5 的扇出是逻辑并行，同步 SDK 下物理上仍串行。",,3
+R09,LangGraph 并行分支写同一个 State 字段为什么会冲突？reducer 怎么解决？,multi_serial,rag,rag,rag,rag,True,PASS,PASS,0,,,PASS,答案直接回答了冲突原因（共享 State 字段并发覆盖触发 InvalidUpdateError）和 reducer 解决方式（声明合并规则、分支只返回增量），并给出 evidences 字典合并、trace operator.add 的具体例子，与证据一致；同时保留了“逻辑并行、物理串行”的关键限制，无夸大或遗漏。,True,True,5.129,0,"LangGraph 的 State 是共享字典，多个专家分支同时写同一个字段时，会触发 InvalidUpdateError，因为默认更新策略不允许同一字段被并发覆盖。
+
+reducer 的解决方式是：为每个会被多分支写入的字段声明合并规则，让各分支只返回增量，由 reducer 负责合并。例如 evidences 用字典合并 reducer，trace 用 operator.add 做列表累加。
+
+需要注意，W5 的扇出只是逻辑并行，在同步 SDK 下物理上仍串行。",,3
+R09,LangGraph 并行分支写同一个 State 字段为什么会冲突？reducer 怎么解决？,multi_parallel,rag,rag,rag,rag,True,PASS,PASS,0,,,PASS,答案直接回答了冲突原因（共享 State 字典、多分支写同一字段触发 InvalidUpdateError）和 reducer 解决方案（evidences 字典合并、trace 用 operator.add 累加、分支只返回增量），与证据一致，未夸大或遗漏关键限制。,True,True,4.57,0,并行分支写同一个 State 字段会冲突，是因为 LangGraph 的 State 是共享字典，多个专家同时写同一字段会触发 InvalidUpdateError。解决办法是给该字段配置 reducer：evidences 用字典合并，trace 用 operator.add 列表累加，每个分支只返回增量，由 reducer 负责合并。,,3
+R10,给我一份关于 MovieLens 用户偏好模式的简报，并说明挖掘方法。,single,mining|rag,,mining|rag,mining|rag,True,N/A（无内部 Critic）,FAIL,34,0.84|1.55,,PASS,答案直接回应简报与方法说明，分群、关联规则、决策树数字均与证据一致；正确指出分群反映活跃度而非评分高低、规则按 lift 排序、行为特征解释力有限等关键限制，无夸大。,False,False,3.446,0,"MovieLens 用户偏好模式简报
+
+结论：用户偏好主要体现为“活跃度分层”和“类型共现”两类模式；评分严格度只能被行为特征部分解释。
+
+1. 用户分群（K-Means，K=2，轮廓系数 0.4077）
+- 轻度用户 532 人（87.2%）：人均 106.9 条评分、活跃 1.1 年、均分 3.67
+- 重度用户 78 人（12.8%）：人均 563.9 条、活跃 5.6 年、均分 3.58
+- 两组均分接近，说明分群识别的是活跃度差异，而非评分高低；约 13% 的重度用户贡献约 44% 的评分。
+
+2. 类型关联（Apriori，min_support=0.05，609 条事务，13 条规则）
+- Romance→Comedy+Drama：confidence 0.78、lift 1.79
+- Sci-Fi→Action：confidence 0.80、lift 1.68
+- Drama+Romance→Comedy：confidence 0.84、lift 1.55
+- 主要模式是情感片三角和科幻动作绑定。
+
+3. 评分严格度（决策树，树深 4）
+- 5 折交叉验证准确率 70.3%±1.7%，基线 65.2%；测试集 66.4%
+- 特征重要性：std_rating 0.58 > log_n_ratings 0.30 > first_year 0.11
+- 评分波动大的用户更严格、更活跃；但行为数据缺少“品味”维度，解释力有限。
+
+方法要点：事务由每位用户评分≥4 的电影中类型出现次数最多的前 3 个类型构成偏好签名；规则按 lift 排序，而非按 confidence 排序。",,3
+R10,给我一份关于 MovieLens 用户偏好模式的简报，并说明挖掘方法。,multi_serial,mining|rag,mining|rag,mining|rag,mining|rag,True,FAIL,PASS,26,,,FAIL,答案大体忠实，但有一处与证据不符：称重度用户“合计贡献约四成评分”，证据未给出该比例，且按人均评分×人数估算约为 39%，属推算而非证据直接支持，应标注为估算或删除。其余分群、关联规则、决策树及局限均与证据一致。,True,False,20.848,1,"结论：MovieLens 用户呈明显两极：轻度用户占 87.2%，人均评分 106.87 条；重度用户人均评分量约为轻度的 5 倍，合计贡献约四成评分。偏好上类型组合关联强，评分严格度可由行为特征部分预测。
+
+分群：K-Means 取 K=2（轮廓系数扫描 2~8 的最高点 0.41）。轻度用户 532 人、活跃 1.07 年、均分 3.67；重度用户 78 人、活跃 5.56 年、均分 3.58。
+
+关联规则（min_support=0.05，基于 609 条用户级类型偏好事务，非全量评分；算法未明确）：Romance→Comedy+Drama 置信度 0.7757、提升度 1.7894；Sci-Fi→Action 置信度 0.8000。
+
+决策树：预测宽容型评分者，交叉验证 70.3%±1.7%，测试集 66.4%（n=122），存在泛化差距；std_rating 重要性 0.58 主导。局限：纯行为特征无「品味」维度。
+
+数据为 ml-latest-small，1996–2018 年，稀疏度 98.30%。",,3
+R10,给我一份关于 MovieLens 用户偏好模式的简报，并说明挖掘方法。,multi_parallel,mining|rag,mining|rag,mining|rag,mining|rag,True,PASS,PASS,26,,,PASS,答案直接回应了用户偏好模式简报与方法说明，关键数字与证据一致（K=2、轮廓系数0.4077、用户数与占比、关联规则指标、决策树准确率与基线、特征重要性）。局限也如实提及事务覆盖有限和缺少品味维度，未夸大结论。,True,True,16.657,1,"结论：MovieLens 用户呈明显两极分化：轻度用户 532 人（占 87.2%），人均评分 106.87 条、活跃 1.07 年；重度用户 78 人（占 12.8%），人均 563.88 条、活跃 5.56 年，人均活跃度显著更高。数据含 610 用户、100,836 条评分，稀疏度 98.30%。
+
+方法：K-Means 聚类（K 扫描 2~8，最优 K=2，轮廓系数 0.41）；关联规则挖掘（min_support=0.05，609 条事务），如 Romance→Comedy+Drama 置信度 0.7757、提升度 1.7894；决策树预测宽容型评分者，交叉验证 70.3%±1.7%（基线 65.2%），测试集 66.4%（n=122），泛化略降；std_rating 重要性 0.58 主导，评分波动大者更严格、更活跃。
+
+局限：关联规则仅 609 条事务、覆盖有限；纯行为特征解释力有限，缺“品味”维度。",,3
+R11,评分超过 4.0 且至少有 100 人评价的电影有多少部？同时说明 ratings 表有哪些字段。,single,rag|sql,,sql,sql,False,N/A（无内部 Critic）,PASS,4,,,PASS,答案直接给出 47 部，与查询结果一致；完整列出 ratings 表 6 个字段及类型，与证据一致。仅将问题中的“评分超过 4.0”表述为“平均评分超过 4.0”，属轻微措辞差异，未影响结论。,False,False,1.907,0,"结论：共 47 部电影平均评分超过 4.0，且评价人数不少于 100 人。
+
+ratings 表字段（6 个）：
+- userId（BIGINT）：用户 ID
+- movieId（BIGINT）：电影 ID
+- rating（DOUBLE）：评分
+- timestamp（BIGINT）：原始时间戳
+- rated_at（TIMESTAMP）：评分时间
+- rated_year（INTEGER）：评分年份",,3
+R11,评分超过 4.0 且至少有 100 人评价的电影有多少部？同时说明 ratings 表有哪些字段。,multi_serial,rag|sql,rag|sql,rag|sql,rag|sql,True,PASS,PASS,9,,,PASS,答案直接给出47部，与SQL结果一致；完整列出ratings表6个字段及类型说明，与schema证据一致，未夸大或遗漏关键限制。,True,True,7.902,0,"满足“评分超过 4.0 且至少有 100 人评价”的电影共有 47 部（查询结果共 1 行，当前展示 1 行）。
+
+ratings 表共有 6 个字段：userId（用户ID）、movieId（电影ID）、rating（评分，0.5–5.0）、timestamp（Unix 时间戳）、rated_at（评分时间）、rated_year（评分年份）。该表共 100,836 行。",,3
+R11,评分超过 4.0 且至少有 100 人评价的电影有多少部？同时说明 ratings 表有哪些字段。,multi_parallel,rag|sql,rag|sql,rag|sql,rag|sql,True,PASS,PASS,8,,,PASS,答案直接给出47部，与SQL结果一致；ratings表6个字段及类型与SQL和字典证据一致，未夸大或遗漏关键限制。,True,True,4.83,0,"评分超过 4.0 且至少有 100 人评价的电影共有 47 部（查询返回 1 行）。
+
+ratings 表共有 6 个字段：userId（用户ID）、movieId（电影ID）、rating（评分，0.5–5.0）、timestamp（Unix 时间戳）、rated_at（评分时间）、rated_year（评分年份）。该表共 100,836 行。",,3
+R12,结合 K-Means 分群结果说明轻度和重度用户的差异，并解释为什么轮廓系数可以用来选 K。,single,mining|rag,,mining|rag,mining|rag,True,N/A（无内部 Critic）,PASS,20,,,PASS,答案直接回答了差异与选K理由，数值与证据一致（K=2、轮廓系数0.4077、532/78人、106.9/563.9条、1.1/5.6年、3.67/3.58、约13%贡献约44%），并正确指出分群区分活跃度而非评分高低；轮廓系数解释准确，K下界2与上界8的限制也与文档一致，无夸大或遗漏关键限制。,True,True,2.237,0,"结论： K=2 时轮廓系数 0.4077 为 K=2~8 中最高，因此选 K=2；分群主要区分活跃度，而非评分高低。
+
+差异：
+- 轻度用户 532 人（87.2%）：平均评分 106.9 条、活跃 1.1 年、平均分 3.67。
+- 重度用户 78 人（12.8%）：平均评分 563.9 条、活跃 5.6 年、平均分 3.58。
+- 两组平均分接近，说明差异在评分数量与活跃年数；约 13% 重度用户贡献约 44% 评分。
+
+轮廓系数选 K 的原因： 它衡量样本与自身簇的紧密度相对与最近其他簇的分离度，无需真实标签即可评价聚类质量，取值越高簇内越紧、簇间越分。K=1 无法定义，故下界取 2；上界 8 兼顾业务可解释性。",,3
+R12,结合 K-Means 分群结果说明轻度和重度用户的差异，并解释为什么轮廓系数可以用来选 K。,multi_serial,mining|rag,mining|rag,mining|rag,mining|rag,True,PASS,PASS,19,,,PASS,答案直接回答了差异与轮廓系数选K的理由，数据与证据一致（K=2、0.4077、人数/占比/均值均吻合），并正确指出平均分接近说明区分活跃度；轮廓系数解释准确且未夸大，还补充了重度组规则小样本限制。,True,True,12.859,0,"K-Means 在 K=2 时轮廓系数最高 0.4077，据此把用户分为两类：轻度用户 532 人（占 87.2%），人均评分 106.87 条、活跃 1.07 年、平均分 3.67；重度用户 78 人（占 12.8%），人均评分 563.88 条、活跃 5.56 年、平均分 3.58。两组平均分接近，说明分群区分的是活跃度而非评分高低。
+
+轮廓系数衡量样本与自身簇的紧密度相对与其他簇的分离度，取值越高表示簇内越紧凑、簇间越分离，因此可用于比较不同 K 的聚类质量；K=2 到 8 中 K=2 得分最高，故选 K=2。需注意：关联规则基于全量 609 条事务，重度组规则仅 5–14 人支撑，属小样本探索性发现。",,3
+R12,结合 K-Means 分群结果说明轻度和重度用户的差异，并解释为什么轮廓系数可以用来选 K。,multi_parallel,mining|rag,mining|rag,mining|rag,mining|rag,True,PASS,PASS,19,,,PASS,答案直接回答了差异与轮廓系数选K的理由，数据与证据一致（K=2、0.4077、人数/占比/均值均吻合），并正确指出分群区分活跃度而非评分高低，还补充了重度组规则小样本限制，无夸大或遗漏关键限制。,True,True,9.184,0,"K-Means 在 K=2 时轮廓系数最高 0.4077，据此把用户分为两类：轻度用户 532 人（占 87.2%），人均评分 106.87 条、活跃 1.07 年、平均分 3.67；重度用户 78 人（占 12.8%），人均评分 563.88 条、活跃 5.56 年、平均分 3.58。两组平均分接近，说明分群主要区分的是活跃度，而不是评分高低。
+
+轮廓系数衡量样本与自身簇的紧密度相对于与最近其他簇的分离度，取值越高表示簇内越紧凑、簇间越分离，因此可用来比较不同 K 的聚类质量；K=2 到 8 中 K=2 得分最高，故选择 K=2。需注意：关联规则基于全量 609 条事务，重度组规则仅 5–14 人支撑，属小样本探索性发现。",,3
+R13,请介绍 MovieLens 数据集概况，并用评分数据库核实总评分数、用户数和电影数。,single,rag|sql,,sql,sql,False,N/A（无内部 Critic）,FAIL,8,0|18|20,,PASS,答案直接回应了概况与三项核实数字，且与查询结果一致；对9724与9742差异的解释（18部无评分）是合理算术推论，未夸大或遗漏关键限制。,False,False,2.484,0,"MovieLens 数据集包含用户对电影的评分记录，以及电影元数据（片名和 20 个类型 0/1 标记列）。
+
+经数据库核实：
+- 总评分数：100836 条
+- 用户数：610 人
+- 被评分的电影数：9724 部
+- movies 表电影总数：9742 部
+
+也就是说，有 18 部电影在 movies 表中存在，但没有任何评分记录。",,3
+R13,请介绍 MovieLens 数据集概况，并用评分数据库核实总评分数、用户数和电影数。,multi_serial,rag|sql,rag|sql,rag|sql,rag|sql,True,PASS,PASS,22,,,PASS,答案直接回应问题，核心数字（100836 评分、610 用户、9742 电影）与 SQL 和文档一致；评分范围、时间跨度、平均分、分布、类型及无评分/无类型电影均有证据支持，并明确说明类型统计仅展示前 15 行，未夸大或遗漏关键限制。,True,True,16.802,1,MovieLens ml-latest-small 数据集含评分 100836、用户 610、电影 9742，评分范围 0.5–5.0 分，时间跨度 1996-03-29 至 2018-09-24，平均评分 3.50。评分分布以 4 分最多（26.6），3 分次之（19.88）。类型覆盖 19 类，Drama 最多（4361），另有 34 部电影无类型标记；18 部电影无评分。注意：类型统计仅展示前 15 行，非全部 19 类。,,3
+R13,请介绍 MovieLens 数据集概况，并用评分数据库核实总评分数、用户数和电影数。,multi_parallel,rag|sql,rag|sql,rag|sql,rag|sql,True,PASS,PASS,23,,,PASS,答案直接回应了概况与三项核实数字，且与 SQL 和 RAG 证据一致：100836 条评分、610 用户、9742 部电影；补充的 9724 部被评分电影、18 部无评分、平均分 3.50、人均 165.3 条及评分分布均来自查询结果，未夸大或遗漏关键限制。,True,True,9.432,0,"MovieLens ml-latest-small 是 1996-03-29 至 2018-09-24 的真实评分数据，评分范围 0.5–5.0 分，稀疏度 98.30%，无缺失值。
+
+数据库核实结果：总评分数 100836、用户数 610、电影数 9742；其中实际被评分的电影 9724，有 18 部电影无评分。平均评分 3.50，人均评分 165.30 条（最少 20、最多 2698）。评分分布查询返回全部 10 个分值档，4.0 分最多（26818 条），0.5 分最少（1370 条）。",,3

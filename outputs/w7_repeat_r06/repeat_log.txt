@@ -1,0 +1,2049 @@
+######## repeat 1 ########
+R06 | 单 Agent
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[单 Agent] 工具调用：association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; retrieve_knowledge({"query": "Apriori 关联规则 重度用户 轻度用户 差异 稳定规则", "top_k": 3}) -> success
+
+证据：
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【retrieve_knowledge】
+【文档 apriori_result · Apriori 关联规则结果】
+Apriori 关联规则结果。W4 Apriori 关联规则：min_support=0.05 时挖出 13 条规则（lift>1 且 confidence>=0.5）。典型规则：Romance 推出 Comedy+Drama，confidence 0.78 lift 1.79，83 人支撑；Sci-Fi 推出 Action，confidence 0.80 lift 1.68，40 人支撑；Crime 推出 Drama，confidence 0.94 lift 1.21。情感片三角与科幻动作绑定是主要模式。
+
+【文档 apriori_method · Apriori 事务构建方法】
+Apriori 事务构建方法。关联规则事务定义：每位用户取评分>=4 的电影中类型出现次数最多的前 3 个类型，形成偏好签名，共 609 条事务（1 名用户 userId=442 最高评分仅 2.5 被过滤）。v1 定义「看过至少 1 部 4 分片的所有类型」失败：人均 80 部 4 分片几乎覆盖全部类型，主流类型 support 超 95% 无区分度。改为 top-3 偏好后 support 梯度拉开。规则按 lift 而非 confidence 排序：lift=confidence/P(B)，大于 1 才是正相关，高 confidence 可能只是后项本身热门。支撑人数=support 乘以事务数 609。
+
+【文档 group_rules · 分组关联规则对比结果】
+分组关联规则对比结果。W4 按 K-Means 分群分组挖掘：重度组 78 人 13 条规则，轻度组 531 人 13 条规则。重度用户信号更纯：Romance 推出 Comedy 在重度组 confidence=1.000，轻度组 0.811。组独有规则：重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。核心规则（情感三角、Sci-Fi 推 Action）跨组稳定，验证全量规则稳健性。注意重度组每条规则仅 5-14 人支撑，属小样本探索性发现。
+
+最终回答：
+结论：核心规则跨组稳定，差异主要在信号纯度与组独有规则族。
+
+- 跨组稳定：Romance→Comedy+Drama（重度 lift 1.79、轻度 1.80）、Romance→Comedy（重度 1.63、轻度 1.53）、Sci-Fi→Action（重度 1.33、轻度 1.74）、Adventure→Action、Crime→Drama 均两组出现，验证全量规则稳健。
+- 重度更纯：Romance→Comedy 置信度 1.000（轻度 0.811），Drama+Romance→Comedy 也达 1.000。
+- 组独有：重度有 Crime 复合规则族（Crime+Comedy→Drama 等）；轻度有 Thriller 系规则（Crime+Thriller→Drama、Comedy+Thriller→Drama）。
+- 注意：重度组仅 78 人、每条规则 5–14 人支撑，属小样本探索性发现。
+
+硬校验：FAIL | 外部评审：PASS | 答案直接对比两组规则，所列稳定规则、置信度差异、组独有规则族及小样本限制均与证据一致，无夸大或遗漏关键限制。
+耗时：2.777s
+
+
+######## repeat 1 ########
+R06 | 多 Agent 串行
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[Planner] 路由=['mining', 'rag'] | 需要数据挖掘的用户分群与关联规则对比结论，并解释关联规则/稳定性指标的方法论含义。
+[挖掘Agent] 工具调用: association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; cluster_profiles({}) -> success
+[挖掘Agent] 证据: ## 重度 vs 轻度用户关联规则差异分析
+
+**分群背景**（K=2，轮廓系数 0.4077）：重度用户仅 78 人（12.8%），但人均评分 563.9 条、活跃 5.56 年；轻度用户 532 人（87.2%），人均评分 106.9 条、活跃 1.07 年。重度用户是"少而深"的核心群体。
+
+### 一、跨组稳定规则（两组均出现，方向一致）
+
+| 规则 | 重度 lift / conf | ...
+[RAG Agent] 子查询: 重度用户关联规则特征 | 轻度用户关联规则特征 | 跨组稳定关联规则
+[RAG Agent] 检索后端: hybrid | 召回文档: group_rules, apriori_method, apriori_result（得分 0.4389/0.3748/0.3416）
+[RAG Agent] 证据: **分组差异：**
+
+- **样本与规则数**：W4 按 K-Means 分群挖掘，重度组 78 人、13 条规则；轻度组 531 人、13 条规则。
+- **信号纯度**：重度用户信号更纯。例如 Romance 推出 Comedy 在重度组 confidence=1.000，轻度组为 0.811。
+- **组独有规则**：重度组有 Crime 复合规则族；轻度组有 Thriller 系规则。
+
+...
+[Synthesizer] 草稿: **结论**：两组规则结构相似，但重度组信号更纯、有 Crime 复合规则族；轻度组独有 Thriller 系规则。情感三角与 Sci-Fi→Action 跨组稳定。
+
+**差异**
+- 重度组：Romance→Comedy 的 confidence 为 1.000，轻度组为 0.811；重度组另有...
+[Critic·硬校验] PASS | 8 个数字通过出处/关系/格式检查，Fact=12
+[Critic] PASS | 结论与原始证据一致：重度组 Romance→Comedy confidence=1.000、轻度组 0.811；重度组有 Crime 复合规则族（Crime→Drama 等），轻度组有 Thriller 系规则（Crime+Thriller→Drama、Comedy+Thriller→Drama）；所列 6 条跨组稳定规则在两组规则表中均出现，情感三角与 Sci-Fi→Action 稳定成立。直接回答了差异与稳定性两问。限制说明充分：指出重度组小样本（78 人、5–14 人支撑）为探索性发现，并主动披露轻度组 531 vs 532 的人数出入。无夸大或关键遗漏。
+[Critic] 审查通过，输出最终答案
+
+证据：
+【mining】
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【cluster_profiles】
+K-Means 分群结果：K=2，轮廓系数=0.4077
+K 扫描范围 2~8，2 为轮廓系数最高点
+cluster_name  user_count  user_ratio  avg_ratings  avg_active_years  avg_rating
+        轻度用户         532       0.872      106.867             1.070       3.669
+        重度用户          78       0.128      563.885             5.564       3.579
+
+【rag】
+【文档 group_rules · 分组关联规则对比结果】
+分组关联规则对比结果。W4 按 K-Means 分群分组挖掘：重度组 78 人 13 条规则，轻度组 531 人 13 条规则。重度用户信号更纯：Romance 推出 Comedy 在重度组 confidence=1.000，轻度组 0.811。组独有规则：重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。核心规则（情感三角、Sci-Fi 推 Action）跨组稳定，验证全量规则稳健性。注意重度组每条规则仅 5-14 人支撑，属小样本探索性发现。
+
+【文档 apriori_method · Apriori 事务构建方法】
+Apriori 事务构建方法。关联规则事务定义：每位用户取评分>=4 的电影中类型出现次数最多的前 3 个类型，形成偏好签名，共 609 条事务（1 名用户 userId=442 最高评分仅 2.5 被过滤）。v1 定义「看过至少 1 部 4 分片的所有类型」失败：人均 80 部 4 分片几乎覆盖全部类型，主流类型 support 超 95% 无区分度。改为 top-3 偏好后 support 梯度拉开。规则按 lift 而非 confidence 排序：lift=confidence/P(B)，大于 1 才是正相关，高 confidence 可能只是后项本身热门。支撑人数=support 乘以事务数 609。
+
+【文档 apriori_result · Apriori 关联规则结果】
+Apriori 关联规则结果。W4 Apriori 关联规则：min_support=0.05 时挖出 13 条规则（lift>1 且 confidence>=0.5）。典型规则：Romance 推出 Comedy+Drama，confidence 0.78 lift 1.79，83 人支撑；Sci-Fi 推出 Action，confidence 0.80 lift 1.68，40 人支撑；Crime 推出 Drama，confidence 0.94 lift 1.21。情感片三角与科幻动作绑定是主要模式。
+
+最终回答：
+结论：两组规则结构相似，但重度组信号更纯、有 Crime 复合规则族；轻度组独有 Thriller 系规则。情感三角与 Sci-Fi→Action 跨组稳定。
+
+差异
+- 重度组：Romance→Comedy 的 confidence 为 1.000，轻度组为 0.811；重度组另有 Crime 复合规则族（如 Crime→Drama，confidence 1.000）。
+- 轻度组：独有 Thriller 系规则（Crime+Thriller→Drama、Comedy+Thriller→Drama）。
+
+跨组稳定：Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama 在两组均出现。
+
+注意：重度组仅 78 人，每条规则仅 5–14 人支撑，属小样本探索性发现；分组挖掘中轻度组为 531 人，与分群表的 532 人略有出入。
+
+硬校验：PASS | 外部评审：PASS | 答案直接回应差异与跨组稳定规则，结论与证据一致：重度组Romance→Comedy置信度1.000、轻度组0.811，重度组有Crime复合规则，轻度组有Thriller系规则，所列稳定规则均在两组规则表中出现。小样本限制和531/532人数出入均已如实说明，无夸大。
+耗时：12.515s
+
+
+######## repeat 1 ########
+R06 | 多 Agent 并行
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[Planner] 路由=['mining', 'rag'] | 需要数据挖掘的用户分群与关联规则对比结论，并需解释关联规则/稳定性指标的方法论含义。
+[挖掘Agent] 工具调用: association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; cluster_profiles({}) -> success
+[挖掘Agent] 证据: ## 重度 vs 轻度用户关联规则差异分析
+
+**分群背景**（K=2，轮廓系数 0.4077）：重度用户仅 78 人（12.8%），但人均评分 563.9 条、活跃 5.56 年；轻度用户 532 人（87.2%），人均仅 106.9 条、活跃 1.07 年。两组平均评分接近（3.58 vs 3.67）。
+
+### 一、跨组稳定规则（核心共性）
+
+| 规则 | 重度 support / conf...
+[RAG Agent] 子查询: 重度用户关联规则特征 | 轻度用户关联规则特征 | 跨组稳定关联规则
+[RAG Agent] 检索后端: hybrid | 召回文档: group_rules, apriori_method, apriori_result（得分 0.4389/0.3748/0.3416）
+[RAG Agent] 证据: **分组差异：**
+
+- **样本与规则数**：W4 按 K-Means 分群挖掘，重度组 78 人、13 条规则；轻度组 531 人、13 条规则。
+- **信号纯度**：重度用户信号更纯。例如 Romance 推出 Comedy 在重度组 confidence=1.000，轻度组为 0.811。
+- **组独有规则**：重度组有 Crime 复合规则族；轻度组有 Thriller 系规则。
+
+...
+[Synthesizer] 草稿: **结论**：两组规则结构相近，但重度组信号更纯、规则更集中；情感片三角与 Sci-Fi→Action 跨组稳定。
+
+**差异**：重度组 Romance→Comedy 的 confidence 为 1.000，轻度组为 0.811；重度组独有 Crime 复合规则族，轻度组独有 Thriller ...
+[Critic·硬校验] PASS | 10 个数字通过出处/关系/格式检查，Fact=12
+[Critic] REVISE | 主要问题：1) 稳定规则清单有误。证据中 Adventure→Action 在两组均出现（重度 lift 1.1818，轻度 lift 1.3334），可列为稳定；但 Crime→Drama 在重度组 confidence=1.000、轻度组 0.9286，确实两组均出现，可保留。真正的问题是回答把 Adventure→Action 列入稳定规则是对的，但遗漏了轻度组独有的 Romance→Drama（lift 1.2175）等规则未说明，且未指出重度组 Crime 复合规则族（Crime→Comedy、Crime+Drama→Comedy、Comedy+Crime→Drama）与轻度组 Thriller 系规则（Crime+Thriller→Drama、Comedy+Thriller→Drama）的具体差异，建议补充。2) 结论'重度组信号更纯、规则更集中'有夸大：重度组仅 78 人、每条规则 5–14 人支撑，confidence=1.000 很可能是小样本过拟合，回答虽提及小样本但结论仍下得过强，建议改为'重度组 confidence 更高但受小样本限制，稳定性存疑'。3) 样本数字：cluster_profiles 显示轻度 532 人、重度 78 人，但 rag 文档写轻度组 531 人，存在 1 人不一致，回答直接采用 532 未说明该矛盾，建议注明数据源差异。4) 回答未直接对比两组规则数量（各 13 条）及 lift 排序差异，建议补充'两组规则数相同、结构相近'的证据支撑。5) 遗漏关键限制：事务构建为 top-3 偏好签名（609 条事务），规则按 lift 排序，support 数值小，应提示这些规则反映的是偏好签名共现而非直接观影行为。
+[Synthesizer] 草稿: 两组规则数相同（各 13 条），结构相近，但侧重不同。重度组 confidence 普遍更高，如 Romance→Comedy 为 1.000，轻度组为 0.811；但重度组仅 [F008] 人、每条规则约 5–14 人支撑，高 confidence 可能受小样本影响，稳定性存疑。
+
+差异：重度组有...
+[Critic·硬校验] PASS | 11 个数字通过出处/关系/格式检查，Fact=12
+[Critic] PASS | 结论与原始证据一致：规则数、confidence 对比（重度 1.000 vs 轻度 0.811）、组独有规则（重度 Crime 复合族、轻度 Thriller 系及 Romance→Drama）、跨组稳定规则（情感三角、Sci-Fi→Action、Adventure→Action、Crime→Drama）均可在证据中核对。直接回答了差异与稳定性两问。限制说明充分：指出重度组小样本（5–14 人支撑）、轻度组人数 532 vs 531 的 1 人差异、规则基于 top-3 偏好签名而非直接观影行为。无夸大或关键遗漏。
+[Critic] 审查通过，输出最终答案
+
+证据：
+【mining】
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【cluster_profiles】
+K-Means 分群结果：K=2，轮廓系数=0.4077
+K 扫描范围 2~8，2 为轮廓系数最高点
+cluster_name  user_count  user_ratio  avg_ratings  avg_active_years  avg_rating
+        轻度用户         532       0.872      106.867             1.070       3.669
+        重度用户          78       0.128      563.885             5.564       3.579
+
+【rag】
+【文档 group_rules · 分组关联规则对比结果】
+分组关联规则对比结果。W4 按 K-Means 分群分组挖掘：重度组 78 人 13 条规则，轻度组 531 人 13 条规则。重度用户信号更纯：Romance 推出 Comedy 在重度组 confidence=1.000，轻度组 0.811。组独有规则：重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。核心规则（情感三角、Sci-Fi 推 Action）跨组稳定，验证全量规则稳健性。注意重度组每条规则仅 5-14 人支撑，属小样本探索性发现。
+
+【文档 apriori_method · Apriori 事务构建方法】
+Apriori 事务构建方法。关联规则事务定义：每位用户取评分>=4 的电影中类型出现次数最多的前 3 个类型，形成偏好签名，共 609 条事务（1 名用户 userId=442 最高评分仅 2.5 被过滤）。v1 定义「看过至少 1 部 4 分片的所有类型」失败：人均 80 部 4 分片几乎覆盖全部类型，主流类型 support 超 95% 无区分度。改为 top-3 偏好后 support 梯度拉开。规则按 lift 而非 confidence 排序：lift=confidence/P(B)，大于 1 才是正相关，高 confidence 可能只是后项本身热门。支撑人数=support 乘以事务数 609。
+
+【文档 apriori_result · Apriori 关联规则结果】
+Apriori 关联规则结果。W4 Apriori 关联规则：min_support=0.05 时挖出 13 条规则（lift>1 且 confidence>=0.5）。典型规则：Romance 推出 Comedy+Drama，confidence 0.78 lift 1.79，83 人支撑；Sci-Fi 推出 Action，confidence 0.80 lift 1.68，40 人支撑；Crime 推出 Drama，confidence 0.94 lift 1.21。情感片三角与科幻动作绑定是主要模式。
+
+最终回答：
+两组规则数相同（各 13 条），结构相近，但侧重不同。重度组 confidence 普遍更高，如 Romance→Comedy 为 1.000，轻度组为 0.811；但重度组仅 78 人、每条规则约 5–14 人支撑，高 confidence 可能受小样本影响，稳定性存疑。
+
+差异：重度组有 Crime 复合规则族（Crime→Comedy、Crime+Drama→Comedy、Comedy+Crime→Drama）；轻度组独有 Thriller 系规则（Crime+Thriller→Drama、Comedy+Thriller→Drama）及 Romance→Drama（lift 1.2175）。
+
+跨组稳定：情感三角（Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy）、Sci-Fi→Action、Adventure→Action、Crime→Drama 均两组出现。
+
+注意：轻度用户数 cluster_profiles 为 532 人，rag 文档写 531 人，存在 1 人差异；规则基于 top-3 偏好签名（609 条事务）按 lift 排序，反映类型共现而非直接观影行为。
+
+硬校验：PASS | 外部评审：PASS | 答案直接回应差异与跨组稳定规则，结论与证据一致：规则数、confidence 对比、Crime/Thriller 组独有规则、情感三角与 Sci-Fi→Action 等稳定规则均有据；并恰当提示重度组小样本、轻度人数 532 vs 531 不一致及 top-3 偏好签名限制，未夸大。
+耗时：15.036s
+
+
+######## repeat 2 ########
+R06 | 单 Agent
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[单 Agent] 工具调用：association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; cluster_profiles({}) -> success
+
+证据：
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【cluster_profiles】
+K-Means 分群结果：K=2，轮廓系数=0.4077
+K 扫描范围 2~8，2 为轮廓系数最高点
+cluster_name  user_count  user_ratio  avg_ratings  avg_active_years  avg_rating
+        轻度用户         532       0.872      106.867             1.070       3.669
+        重度用户          78       0.128      563.885             5.564       3.579
+
+最终回答：
+结论：两组共享“Romance→Comedy/Drama”和“Adventure→Action”等核心规则，但重度用户规则更“纯”（置信度常达 1.0），轻度用户规则更分散、lift 更高。
+
+差异：
+- 重度用户（78 人，人均 563.9 条评分）：Romance→Comedy 置信度 1.0000、Drama+Romance→Comedy 1.0000、Crime→Drama 1.0000，偏好高度确定；另有 Crime 系列规则（Crime→Comedy、Crime+Drama→Comedy）。
+- 轻度用户（532 人，人均 106.9 条）：Romance→Comedy 仅 0.8105，但 lift 更高（1.5262）；Sci-Fi→Action lift 1.7428 明显高于重度组 1.3265；独有 Comedy+Romance→Drama、Crime+Thriller→Drama、Romance→Drama、Comedy+Thriller→Drama。
+
+跨组稳定规则：Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama（六条在两组均出现）。
+
+硬校验：FAIL | 外部评审：PASS | 答案直接对比两组规则，所列置信度、lift、支持度及独有/共有规则均与证据一致；跨组稳定规则确为六条共同规则。'重度更纯、轻度更分散且lift更高'的概括基本成立，但轻度组lift并非全部更高（如Romance→Comedy+Drama两组接近），表述略笼统，未构成关键错误。
+耗时：2.620s
+
+
+######## repeat 2 ########
+R06 | 多 Agent 串行
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[Planner] 路由=['mining', 'sql'] | 需要按用户活跃度分组挖掘关联规则并比较跨组稳定性，同时需查询评分数据以构建分组和规则。
+[挖掘Agent] 工具调用: association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; association_rules({"group": "all", "top_n": 10}) -> success
+[挖掘Agent] 证据: ## 重度用户与轻度用户关联规则差异分析
+
+### 一、两组共有的稳定规则（跨组稳定）
+
+以下规则在重度、轻度及全量三组中均出现，方向一致，属于**结构性稳定规则**：
+
+| 规则 | 重度 lift | 轻度 lift | 全量 lift | 稳定性 |
+|---|---|---|---|---|
+| Romance → Comedy+Drama | 1.79 | 1.80 | 1.79 | ★...
+[检索Agent] 工具调用: run_sql({"sql": "SELECT userId, COUNT(*) AS n FROM ratings GROUP BY userId ORDER BY n DESC LIMIT 5"}) -> success; run_sql({"sql": "SELECT MIN(n) AS min_n, MAX(n) AS max_n, AVG(n) AS avg_n, MEDIAN(n) AS med_n, COUNT(*) AS users FROM (SELECT userId, COUNT(*) AS n FROM ratin) -> success; run_sql({"sql": "WITH u AS (\n  SELECT userId, COUNT(*) AS n FROM ratings GROUP BY userId\n),\ngrp AS (\n  SELECT userId, CASE WHEN n >= 200 THEN 'heavy' ELSE) -> success; run_sql({"sql": "WITH u AS (\n  SELECT userId, COUNT(*) AS n FROM ratings GROUP BY userId\n),\ngrp AS (\n  SELECT userId, CASE WHEN n >= 200 THEN 'heavy' ELSE) -> success; run_sql({"sql": "WITH u AS (\n  SELECT userId, COUNT(*) AS n FROM ratings GROUP BY userId\n),\ngrp AS (\n  SELECT userId, CASE WHEN n >= 200 THEN 'heavy' ELSE) -> success; run_sql({"sql": "WITH u AS (\n  SELECT userId, COUNT(*) AS n FROM ratings GROUP BY userId\n),\ngrp AS (\n  SELECT userId, CASE WHEN n >= 200 THEN 'heavy' ELSE) -> success
+[检索Agent] 证据: （工具轮次用尽）完整查询结果共 15 行；当前展示 15 行；排序依据：lift_gap ASC
+     ante     cons  heavy_lift  light_lift  lift_gap  heavy_conf  light_conf
+Adventure   Comedy       0.818       0.818     0.000      0.3215      0.29...
+[Synthesizer] 草稿: **结论**：两组规则结构高度相似，核心类型组合一致；差异主要在置信度，重度组对 Romance→Comedy 等规则更强，轻度组对 Crime→Drama、Sci-Fi→Action 更强。跨组最稳定的是 Adventure→Comedy（lift 差 [F110]）等低提升规则。
+
+**差异**...
+[Critic·硬校验] PASS | 23 个数字通过出处/关系/格式检查，Fact=182
+[Critic] REVISE | 结论与证据基本一致，但存在几处需修正/补充：1) 跨组稳定性的表述有误导：lift_gap 升序前 15 行中，Adventure→Comedy 的 lift 仅约 0.818（低于 1），属于负相关/无提升规则，不能作为“最稳定”的代表性规则；应说明稳定规则多为低 lift 或负 lift 规则，并区分“lift 接近”与“规则有意义”。2) 遗漏关键限制：高 lift 查询重度组 195 行、轻度组仅 15 行，展示行数不对等，不能据此断言“高 lift 小众规则两组都出现”具有可比性；且轻度组仅 15 行可能因 min_support 或样本量限制。3) 未说明两组样本量/事务数差异（重度 22050 事务 vs 轻度组事务数未给出），置信度差异可能受样本量影响。4) “重度组对 Romance→Comedy 等规则更强”需注意：Romance→Comedy 重度 conf=1.0、轻度=0.8105，但 Drama+Romance→Comedy 重度=1.0、轻度=0.8182，方向一致；然而 Crime→Drama 轻度 conf=0.9286 高于重度 1.0？实际重度 Crime→Drama conf=1.0，轻度=0.9286，回答称“轻度组对 Crime→Drama 更强”与证据矛盾，应改为重度更强或删除。5) 建议明确回答“哪些规则跨组稳定”时给出阈值（如 |lift_gap|≤0.02）并列出全部 15 条或说明仅展示前 5 条。6) 补充说明关联规则仅反映共现，不代表因果。
+[Synthesizer] 草稿: **结论**：两组规则方向大体一致，但重度组置信度普遍更高；跨组“稳定”多为低 lift 规则，需谨慎解读。
+
+**差异**：重度组 Romance→Comedy 置信度 [F017:round:2]（轻度 [F063:round:2]），Drama+Romance→Comedy 为 [F017:r...
+[Critic·硬校验] PASS | 19 个数字通过出处/关系/格式检查，Fact=182
+[Critic] REVISE | 回答存在多处与原始证据直接矛盾的数字错误，必须修正。1) 置信度引用错误：证据中重度组 Romance→Comedy 置信度为 1.0000（轻度 0.8105），Drama+Romance→Comedy 为 1.0000（轻度 0.8182），Crime→Drama 为 1.0000（轻度 0.9286），Sci-Fi→Action 重度 0.7143、轻度 0.8140。回答写成 0.51/0.58 等数值，且称“Crime→Drama 重度 0.51 高于轻度 0.58”自相矛盾（0.51 并不高于 0.58），与证据完全不符。2) 结论方向错误：证据显示重度组这些规则的置信度普遍更高（1.0 vs 0.81/0.82/0.93），回答却称重度组更低，结论与证据相反。3) 稳定性部分：lift_gap 查询共 15 行且已全部展示，回答称“仅展示前 15 行”暗示截断，不准确；Adventure→Comedy 的 lift 证据为 0.818/0.818，回答写 0.82 可接受但应精确。4) 限制部分：轻度组事务数确实未在证据中给出，此点正确；但“重度组 195 行、轻度组仅 15 行”是查询返回行数而非规则总数，表述易误导，应说明这是按 lift 排序的查询结果行数差异，不能推断两组规则总量。建议：逐条核对并改正所有置信度数值，重写差异结论（重度组置信度更高），明确 lift_gap 查询已完整展示 15 行，并澄清行数含义。
+[Critic] FAIL | 已达修订上限，草稿仅留诊断记录
+
+证据：
+【mining】
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【association_rules】
+全量用户关联规则（min_support=0.05，609 条事务）
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1363      0.7757 1.7894
+         Sci-Fi       Action   0.0657      0.8000 1.6800
+  Drama+Romance       Comedy   0.1363      0.8384 1.5472
+        Romance       Comedy   0.1461      0.8318 1.5350
+      Adventure       Action   0.1938      0.6243 1.3111
+          Crime        Drama   0.1429      0.9355 1.2096
+ Comedy+Romance        Drama   0.1363      0.9326 1.2058
+ Crime+Thriller        Drama   0.0673      0.9318 1.2048
+        Romance        Drama   0.1626      0.9252 1.1963
+Comedy+Thriller        Drama   0.0805      0.8167 1.0559
+
+【sql】
+【run_sql】
+完整查询结果共 5 行；当前展示 5 行；排序依据：n DESC
+ userId    n
+    414 2698
+    599 2478
+    474 2108
+    448 1864
+    274 1346
+
+【run_sql】
+完整查询结果共 1 行；当前展示 1 行；排序依据：未指定 ORDER BY
+ min_n  max_n      avg_n  med_n  users
+    20   2698 165.304918   70.5    610
+
+【run_sql】
+完整查询结果共 1 行；当前展示 1 行；排序依据：未指定 ORDER BY
+  grp  count_star()
+heavy         22050
+
+【run_sql】
+完整查询结果共 195 行；当前展示 15 行；排序依据：p.grp, lift DESC；展示行数不等于总数
+  grp      ante      cons  support  confidence  lift
+heavy Animation  Children   0.0316      0.5123 7.421
+heavy Film-Noir   Mystery   0.0025      0.2805 4.722
+heavy     Crime Film-Noir   0.0052      0.0412 4.640
+heavy      IMAX    Sci-Fi   0.0067      0.3974 3.937
+heavy  Children   Fantasy   0.0217      0.3150 3.914
+heavy Adventure      IMAX   0.0085      0.0650 3.849
+heavy  Children   Musical   0.0090      0.1301 3.769
+heavy   Fantasy      IMAX   0.0051      0.0632 3.743
+heavy Adventure  Children   0.0322      0.2451 3.550
+heavy Animation      IMAX   0.0037      0.0596 3.534
+heavy Animation   Fantasy   0.0174      0.2825 3.509
+heavy Animation   Musical   0.0074      0.1193 3.456
+heavy Adventure   Fantasy   0.0345      0.2623 3.259
+heavy   Mystery  Thriller   0.0371      0.6248 3.181
+heavy Adventure Animation   0.0254      0.1933 3.133
+
+【run_sql】
+完整查询结果共 15 行；当前展示 15 行；排序依据：lift DESC
+  grp      ante      cons  support  confidence  lift
+light Animation  Children   0.0360      0.5833 7.494
+light     Crime Film-Noir   0.0056      0.0445 4.972
+light Animation   Musical   0.0103      0.1667 4.283
+light  Children   Musical   0.0119      0.1523 3.913
+light  Children   Fantasy   0.0282      0.3621 3.864
+light Adventure      IMAX   0.0150      0.0934 3.798
+light Animation   Fantasy   0.0215      0.3478 3.712
+light   Fantasy      IMAX   0.0083      0.0883 3.589
+light      IMAX    Sci-Fi   0.0105      0.4273 3.525
+light Animation      IMAX   0.0051      0.0833 3.387
+light Adventure  Children   0.0405      0.2524 3.243
+light Adventure Animation   0.0302      0.1883 3.050
+light Adventure   Fantasy   0.0450      0.2803 2.991
+light   Mystery  Thriller   0.0438      0.6533 2.933
+light    Action      IMAX   0.0143      0.0683 2.776
+
+【run_sql】
+完整查询结果共 15 行；当前展示 15 行；排序依据：lift_gap ASC
+     ante     cons  heavy_lift  light_lift  lift_gap  heavy_conf  light_conf
+Adventure   Comedy       0.818       0.818     0.000      0.3215      0.2999
+ Children    Drama       0.348       0.352     0.004      0.1552      0.1638
+  Fantasy  Mystery       1.109       1.103     0.006      0.0659      0.0740
+  Romance Thriller       0.369       0.363     0.006      0.0725      0.0809
+   Comedy    Drama       0.593       0.600     0.007      0.2649      0.2790
+  Romance   Sci-Fi       0.311       0.319     0.008      0.0314      0.0386
+    Drama   Sci-Fi       0.480       0.472     0.008      0.0485      0.0572
+   Action Thriller       1.830       1.820     0.010      0.3594      0.4055
+   Action  Romance       0.313       0.323     0.010      0.0518      0.0598
+    Drama  Romance       1.296       1.286     0.010      0.2147      0.2381
+   Comedy Thriller       0.262       0.249     0.013      0.0514      0.0556
+Adventure    Crime       0.404       0.388     0.016      0.0510      0.0488
+   Comedy   Sci-Fi       0.499       0.483     0.016      0.0503      0.0586
+   Action   Comedy       0.594       0.612     0.018      0.2338      0.2241
+   Comedy  Romance       1.430       1.450     0.020      0.2369      0.2686
+
+最终回答：
+结论：两组规则方向大体一致，但重度组置信度普遍更高；跨组“稳定”多为低 lift 规则，需谨慎解读。
+
+差异：重度组 Romance→Comedy 置信度 0.51（轻度 0.58），Drama+Romance→Comedy 为 0.51 对 0.58；Crime→Drama 重度 0.51 高于轻度 0.58。轻度组 Sci-Fi→Action 置信度 0.58，高于重度 0.51。
+
+稳定性：按 lift_gap≤0.02 筛出 15 条（仅展示前 15 行），如 Adventure→Comedy 两组 lift 均 0.82、gap 0.00，但 lift<1 属无提升规则；真正有意义的稳定规则如 Action→Thriller（1.83 vs 1.82）。
+
+限制：高 lift 查询重度组 195 行、轻度组仅 15 行，展示不对等；重度组 22050 事务，轻度组事务数未给出；规则仅反映共现，非因果。
+
+硬校验：PASS | 外部评审：FAIL | 答案中的置信度数值与证据严重不符：证据显示重度组 Romance→Comedy 置信度 1.0000、轻度 0.8105，而答案写成 0.51 对 0.58；Drama+Romance→Comedy 重度 1.0000、轻度 0.8182，也被写成 0.51 对 0.58；Crime→Drama 重度 1.0000、轻度 0.9286，答案称重度 0.51 高于轻度 0.58，方向与数值均错；Sci-Fi→Action 重度 0.7143、轻度 0.8140，答案写成 0.58 对 0.51。因此“重度组置信度普遍更高”的结论与证据不一致。稳定性部分引用 lift_gap 表尚可，但整体核心数值错误，不能视为直接、准确回答。
+耗时：31.842s
+
+
+######## repeat 2 ########
+R06 | 多 Agent 并行
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[Planner] 路由=['mining', 'rag'] | 需要数据挖掘的用户分群与关联规则对比结论，并解释关联规则/稳定性指标的方法论含义。
+[挖掘Agent] 工具调用: association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; cluster_profiles({}) -> success
+[挖掘Agent] 证据: ## 重度 vs 轻度用户关联规则差异
+
+**分群背景**：K=2（轮廓系数 0.4077），轻度用户 532 人（87.2%，人均 106.9 条评分、活跃 1.07 年、均分 3.669）；重度用户 78 人（12.8%，人均 563.9 条评分、活跃 5.56 年、均分 3.579）。
+
+### 一、跨组稳定规则（核心共性）
+
+| 规则 | 重度 support / conf / lift ...
+[RAG Agent] 子查询: 重度用户关联规则特征 | 轻度用户关联规则特征 | 跨组稳定关联规则
+[RAG Agent] 检索后端: hybrid | 召回文档: group_rules, apriori_method, apriori_result（得分 0.4389/0.3748/0.3416）
+[RAG Agent] 证据: **重度组与轻度组的规则差异：**
+
+- **信号纯度不同**：重度用户信号更纯。以 Romance 推出 Comedy 为例，重度组 confidence=1.000，轻度组为 0.811。
+- **组独有规则不同**：重度组有 Crime 复合规则族；轻度组有 Thriller 系规则。
+- **样本规模差异大**：重度组 78 人、13 条规则；轻度组 531 人、13 条规则。重度组每条规...
+[Synthesizer] 草稿: **结论：两组规则结构相近，但重度组信号更纯、独有 Crime 复合规则族；轻度组独有 Thriller 系规则。情感三角与 Sci-Fi→Action 跨组稳定。**
+
+- **差异**：Romance→Comedy 在重度组 confidence 为 1.000，轻度组为 0.811；重度组有 ...
+[Critic·硬校验] PASS | 6 个数字通过出处/关系/格式检查，Fact=12
+[Critic] PASS | 结论与原始证据一致：Romance→Comedy 重度组 confidence=1.000、轻度组=0.8105（约0.811）正确；重度组 Crime 复合规则族（Crime→Drama、Comedy+Crime→Drama、Crime→Comedy、Crime+Drama→Comedy）与轻度组 Thriller 系规则（Crime+Thriller→Drama、Comedy+Thriller→Drama）均可在规则表中核实；情感三角三条规则与 Sci-Fi→Action 在两组规则表中均出现，跨组稳定判断成立。直接回答了差异与稳定规则两个问题。样本限制已注明（重度组 78 人、轻度组 532 人、每条规则 5–14 人支撑、小样本探索性）。轻微可改进处：轻度组人数证据中 cluster_profiles 为 532、rag 文档为 531，回答采用 532 与分群表一致，可接受；未提及 lift 排序依据与 top-3 偏好签名方法，但不影响结论正确性，不构成必须修改。
+[Critic] 审查通过，输出最终答案
+
+证据：
+【mining】
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【cluster_profiles】
+K-Means 分群结果：K=2，轮廓系数=0.4077
+K 扫描范围 2~8，2 为轮廓系数最高点
+cluster_name  user_count  user_ratio  avg_ratings  avg_active_years  avg_rating
+        轻度用户         532       0.872      106.867             1.070       3.669
+        重度用户          78       0.128      563.885             5.564       3.579
+
+【rag】
+【文档 group_rules · 分组关联规则对比结果】
+分组关联规则对比结果。W4 按 K-Means 分群分组挖掘：重度组 78 人 13 条规则，轻度组 531 人 13 条规则。重度用户信号更纯：Romance 推出 Comedy 在重度组 confidence=1.000，轻度组 0.811。组独有规则：重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。核心规则（情感三角、Sci-Fi 推 Action）跨组稳定，验证全量规则稳健性。注意重度组每条规则仅 5-14 人支撑，属小样本探索性发现。
+
+【文档 apriori_method · Apriori 事务构建方法】
+Apriori 事务构建方法。关联规则事务定义：每位用户取评分>=4 的电影中类型出现次数最多的前 3 个类型，形成偏好签名，共 609 条事务（1 名用户 userId=442 最高评分仅 2.5 被过滤）。v1 定义「看过至少 1 部 4 分片的所有类型」失败：人均 80 部 4 分片几乎覆盖全部类型，主流类型 support 超 95% 无区分度。改为 top-3 偏好后 support 梯度拉开。规则按 lift 而非 confidence 排序：lift=confidence/P(B)，大于 1 才是正相关，高 confidence 可能只是后项本身热门。支撑人数=support 乘以事务数 609。
+
+【文档 apriori_result · Apriori 关联规则结果】
+Apriori 关联规则结果。W4 Apriori 关联规则：min_support=0.05 时挖出 13 条规则（lift>1 且 confidence>=0.5）。典型规则：Romance 推出 Comedy+Drama，confidence 0.78 lift 1.79，83 人支撑；Sci-Fi 推出 Action，confidence 0.80 lift 1.68，40 人支撑；Crime 推出 Drama，confidence 0.94 lift 1.21。情感片三角与科幻动作绑定是主要模式。
+
+最终回答：
+结论：两组规则结构相近，但重度组信号更纯、独有 Crime 复合规则族；轻度组独有 Thriller 系规则。情感三角与 Sci-Fi→Action 跨组稳定。
+
+- 差异：Romance→Comedy 在重度组 confidence 为 1.000，轻度组为 0.811；重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。
+- 稳定规则：情感三角（Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy）与 Sci-Fi→Action 在两组均出现。
+- 样本提示：重度组 78 人、轻度组 532 人；重度组每条规则仅 5–14 人支撑，属小样本探索性发现。
+
+硬校验：PASS | 外部评审：PASS | 答案直接回应差异与跨组稳定规则，数值与证据一致（Romance→Comedy 重度1.000/轻度0.811；Crime复合族与Thriller系独有；情感三角及Sci-Fi→Action跨组出现），并如实标注重度组小样本限制。轻度组人数532与rag文档531略有出入，但以cluster_profiles为准，不影响结论。
+耗时：10.013s
+
+
+######## repeat 3 ########
+R06 | 单 Agent
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[单 Agent] 工具调用：association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; retrieve_knowledge({"query": "Apriori 关联规则 重度用户 轻度用户 差异 稳定规则", "top_k": 3}) -> success
+
+证据：
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【retrieve_knowledge】
+【文档 apriori_result · Apriori 关联规则结果】
+Apriori 关联规则结果。W4 Apriori 关联规则：min_support=0.05 时挖出 13 条规则（lift>1 且 confidence>=0.5）。典型规则：Romance 推出 Comedy+Drama，confidence 0.78 lift 1.79，83 人支撑；Sci-Fi 推出 Action，confidence 0.80 lift 1.68，40 人支撑；Crime 推出 Drama，confidence 0.94 lift 1.21。情感片三角与科幻动作绑定是主要模式。
+
+【文档 apriori_method · Apriori 事务构建方法】
+Apriori 事务构建方法。关联规则事务定义：每位用户取评分>=4 的电影中类型出现次数最多的前 3 个类型，形成偏好签名，共 609 条事务（1 名用户 userId=442 最高评分仅 2.5 被过滤）。v1 定义「看过至少 1 部 4 分片的所有类型」失败：人均 80 部 4 分片几乎覆盖全部类型，主流类型 support 超 95% 无区分度。改为 top-3 偏好后 support 梯度拉开。规则按 lift 而非 confidence 排序：lift=confidence/P(B)，大于 1 才是正相关，高 confidence 可能只是后项本身热门。支撑人数=support 乘以事务数 609。
+
+【文档 group_rules · 分组关联规则对比结果】
+分组关联规则对比结果。W4 按 K-Means 分群分组挖掘：重度组 78 人 13 条规则，轻度组 531 人 13 条规则。重度用户信号更纯：Romance 推出 Comedy 在重度组 confidence=1.000，轻度组 0.811。组独有规则：重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。核心规则（情感三角、Sci-Fi 推 Action）跨组稳定，验证全量规则稳健性。注意重度组每条规则仅 5-14 人支撑，属小样本探索性发现。
+
+最终回答：
+结论：核心规则跨组稳定，差异主要在信号纯度与独有规则族。
+
+- 跨组稳定：Romance→Comedy+Drama（重度 lift 1.79、轻度 1.80）、Drama+Romance→Comedy、Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama 在两组均出现，即“情感片三角”与“科幻—动作绑定”稳健。
+- 重度组更纯：Romance→Comedy 置信度 1.000（轻度 0.811）；Drama+Romance→Comedy 1.000（轻度 0.818）；Sci-Fi→Action 轻度反而更高（0.814 vs 0.714）。
+- 组独有：重度组有 Crime 复合规则族（Crime+Comedy→Drama 等）；轻度组有 Thriller 系规则（Crime+Thriller→Drama、Comedy+Thriller→Drama）。
+- 注意：重度组 78 人、每条规则仅 5–14 人支撑，属小样本探索性发现。
+
+硬校验：FAIL | 外部评审：PASS | 答案直接回应差异与跨组稳定规则，所列规则、lift/confidence 数值与证据一致；正确指出重度组信号更纯但 Sci-Fi→Action 轻度更高，并区分两组独有规则族；同时保留重度组小样本限制，无夸大。
+耗时：2.507s
+
+
+######## repeat 3 ########
+R06 | 多 Agent 串行
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[Planner] 路由=['mining', 'rag'] | 需要数据挖掘的用户分群与关联规则对比结论，并解释关联规则/稳定性指标的方法论含义。
+[挖掘Agent] 工具调用: association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; association_rules({"group": "all", "top_n": 10}) -> success
+[挖掘Agent] 证据: ## 重度用户与轻度用户关联规则差异分析
+
+### 一、跨组稳定规则（三组均出现，核心骨架）
+
+以下 5 条规则在重度、轻度、全量三组中均稳定出现，是用户观影偏好的“通用骨架”：
+
+| 规则 | 重度 lift | 轻度 lift | 全量 lift | 稳定性 |
+|---|---|---|---|---|
+| Romance → Comedy+Drama | 1.79 | 1.80 | 1.7...
+[RAG Agent] 子查询: 重度用户关联规则特征 | 轻度用户关联规则特征 | 跨组稳定关联规则
+[RAG Agent] 检索后端: hybrid | 召回文档: group_rules, apriori_method, apriori_result（得分 0.4389/0.3748/0.3416）
+[RAG Agent] 证据: **分组差异：**
+
+- **分组规模与规则数**：W4 按 K-Means 分群挖掘，重度组 78 人、13 条规则；轻度组 531 人、13 条规则。
+- **信号纯度**：重度用户信号更纯。例如 Romance 推出 Comedy 在重度组 confidence=1.000，轻度组为 0.811。
+- **组独有规则**：重度组有 Crime 复合规则族；轻度组有 Thriller 系规则。...
+[Synthesizer] 草稿: **结论**：两组共享“情感三角（Romance→Comedy/Drama）”与“Sci-Fi→Action”骨架，但重度组信号更纯、规则更集中；轻度组规则更分散，并独有 Thriller 系规则。重度组每条规则仅 5–14 人支撑，属小样本探索性发现。
+
+**差异**：Romance→Comedy...
+[Critic·硬校验] PASS | 9 个数字通过出处/关系/格式检查，Fact=0
+[Critic] REVISE | 主要问题：1) 跨组稳定规则清单有误。回答称 Crime→Drama 在两组及全量均出现，但轻度组规则表中并无 Crime→Drama（轻度组只有 Crime+Thriller→Drama 和 Romance→Drama），因此 Crime→Drama 不能算跨组稳定，应删除或改为仅重度组与全量出现。2) 差异部分称重度组独有 Crime 复合规则族，但轻度组也有 Crime+Thriller→Drama，属 Crime 复合规则，'独有 Crime 复合规则族'表述过强，应限定为'重度组独有 Crime→Drama、Comedy+Crime→Drama 等非 Thriller 的 Crime 规则'。3) 遗漏关键限制：重度组 78 人、每条规则仅 5–14 人支撑，confidence=1.000 等极端值极不稳定，回答虽提及小样本但未说明这使组间 confidence 差异（如 1.000 vs 0.811）不宜过度解读。4) 轻度组规则数：证据中轻度组列出 10 条规则，而 rag 文档称 13 条，回答直接采用 13 条未注明不一致，建议注明或回避具体条数。5) 结论'重度组信号更纯、规则更集中'缺乏直接证据支撑（两组规则数相同、lift 排序相近），属推断性表述，建议弱化或删除。其余结论（情感三角、Sci-Fi→Action 跨组稳定、Thriller 系为轻度组独有）与证据一致，可直接回答问题的框架合理。
+[Synthesizer] 草稿: **结论**：两组共享情感三角（Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy）与 Sci-Fi→Action 等核心规则；差异主要在 Crime 与 Thriller 系规则。
+
+**跨组稳定**：上述情感三角与 Sci-Fi→Ac...
+[Critic·硬校验] FAIL | 无证据数字: 10
+[Critic] FAIL | 已达修订上限，草稿仅留诊断记录
+
+证据：
+【mining】
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【association_rules】
+全量用户关联规则（min_support=0.05，609 条事务）
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1363      0.7757 1.7894
+         Sci-Fi       Action   0.0657      0.8000 1.6800
+  Drama+Romance       Comedy   0.1363      0.8384 1.5472
+        Romance       Comedy   0.1461      0.8318 1.5350
+      Adventure       Action   0.1938      0.6243 1.3111
+          Crime        Drama   0.1429      0.9355 1.2096
+ Comedy+Romance        Drama   0.1363      0.9326 1.2058
+ Crime+Thriller        Drama   0.0673      0.9318 1.2048
+        Romance        Drama   0.1626      0.9252 1.1963
+Comedy+Thriller        Drama   0.0805      0.8167 1.0559
+
+【rag】
+【文档 group_rules · 分组关联规则对比结果】
+分组关联规则对比结果。W4 按 K-Means 分群分组挖掘：重度组 78 人 13 条规则，轻度组 531 人 13 条规则。重度用户信号更纯：Romance 推出 Comedy 在重度组 confidence=1.000，轻度组 0.811。组独有规则：重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。核心规则（情感三角、Sci-Fi 推 Action）跨组稳定，验证全量规则稳健性。注意重度组每条规则仅 5-14 人支撑，属小样本探索性发现。
+
+【文档 apriori_method · Apriori 事务构建方法】
+Apriori 事务构建方法。关联规则事务定义：每位用户取评分>=4 的电影中类型出现次数最多的前 3 个类型，形成偏好签名，共 609 条事务（1 名用户 userId=442 最高评分仅 2.5 被过滤）。v1 定义「看过至少 1 部 4 分片的所有类型」失败：人均 80 部 4 分片几乎覆盖全部类型，主流类型 support 超 95% 无区分度。改为 top-3 偏好后 support 梯度拉开。规则按 lift 而非 confidence 排序：lift=confidence/P(B)，大于 1 才是正相关，高 confidence 可能只是后项本身热门。支撑人数=support 乘以事务数 609。
+
+【文档 apriori_result · Apriori 关联规则结果】
+Apriori 关联规则结果。W4 Apriori 关联规则：min_support=0.05 时挖出 13 条规则（lift>1 且 confidence>=0.5）。典型规则：Romance 推出 Comedy+Drama，confidence 0.78 lift 1.79，83 人支撑；Sci-Fi 推出 Action，confidence 0.80 lift 1.68，40 人支撑；Crime 推出 Drama，confidence 0.94 lift 1.21。情感片三角与科幻动作绑定是主要模式。
+
+最终回答：
+结论：两组共享情感三角（Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy）与 Sci-Fi→Action 等核心规则；差异主要在 Crime 与 Thriller 系规则。
+
+跨组稳定：上述情感三角与 Sci-Fi→Action 在重度、轻度及全量三组均出现。Crime→Drama 仅见于重度组与全量，轻度组无此规则，不算跨组稳定。
+
+差异：重度组独有 Crime→Drama、Comedy+Crime→Drama 等非 Thriller 的 Crime 规则；轻度组独有 Crime+Thriller→Drama、Comedy+Thriller→Drama 等 Thriller 系规则。Romance→Comedy 的 confidence 重度组为 1.000、轻度组为 0.811，但重度组仅 78 人、每条规则仅 5–14 人支撑，极端值不稳定，组间差异不宜过度解读。轻度组规则条数证据不一致（规则表列 10 条，文档称 13 条），此处不采信具体条数。
+
+硬校验：FAIL | 外部评审：PASS | 答案直接回应差异与跨组稳定：正确列出共享情感三角和Sci-Fi→Action，指出Crime→Drama仅重度与全量出现、轻度无，区分重度Crime规则与轻度Thriller规则，并引用重度组小样本限制及轻度组规则条数证据不一致，未夸大结论。
+耗时：14.055s
+
+
+######## repeat 3 ########
+R06 | 多 Agent 并行
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[Planner] 路由=['mining', 'rag'] | 需要数据挖掘的用户分群与关联规则对比结论，并解释关联规则/稳定性指标的方法论含义。
+[挖掘Agent] 工具调用: association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; cluster_profiles({}) -> success
+[挖掘Agent] 证据: ## 重度 vs 轻度用户关联规则差异分析
+
+**分群背景**（K=2，轮廓系数 0.4077）：重度用户仅 78 人（12.8%），但人均评分 563.9 条、活跃 5.56 年；轻度用户 532 人（87.2%），人均仅 106.9 条、活跃 1.07 年。两组平均评分接近（3.58 vs 3.67）。
+
+### 一、跨组稳定规则（核心共性）
+
+| 规则 | 重度 lift / conf | ...
+[RAG Agent] 子查询: 重度用户关联规则特征 | 轻度用户关联规则特征 | 跨组稳定关联规则
+[RAG Agent] 检索后端: hybrid | 召回文档: group_rules, apriori_method, apriori_result（得分 0.4389/0.3748/0.3416）
+[RAG Agent] 证据: **分组差异：**
+
+- **样本与规则数**：W4 按 K-Means 分群挖掘，重度组 78 人、13 条规则；轻度组 531 人、13 条规则。
+- **信号纯度**：重度用户信号更纯。例如 Romance 推出 Comedy 在重度组 confidence=1.000，轻度组为 0.811。
+- **组独有规则**：重度组有 Crime 复合规则族；轻度组有 Thriller 系规则。
+
+...
+[Synthesizer] 草稿: **结论：两组规则结构相近，但重度组信号更纯、有 Crime 复合规则族，轻度组独有 Thriller 系规则；情感三角与 Sci-Fi→Action 跨组稳定。**
+
+- **强度差异**：Romance→Comedy 在重度组 confidence 为 1.000，轻度组为 0.811；Sci-...
+[Critic·硬校验] FAIL | 无证据数字: 1.33, 1.74
+[Critic] REVISE | 硬校验未通过，回流修订
+[Synthesizer] 草稿: 两组规则结构相近，但强度与独有规则不同。重度组信号更纯：Romance→Comedy 的 confidence 为 1.000，轻度组为 0.811；Sci-Fi→Action 的 lift 在轻度组更高（1.7428 对 1.3265）。组独有规则：重度组有 Crime 复合规则族，轻度组有 Th...
+[Critic·硬校验] PASS | 8 个数字通过出处/关系/格式检查，Fact=12
+[Critic] PASS | 结论与原始证据一致：重度组 Romance→Comedy confidence=1.000、轻度组 0.811；Sci-Fi→Action lift 轻度 1.7428 高于重度 1.3265；重度组 Crime 复合规则族、轻度组 Thriller 系规则均为组独有；情感三角与 Sci-Fi→Action 跨组稳定。直接回答了差异与稳定规则两问。限制说明到位（重度组 78 人、每条规则 5–14 人支撑、小样本探索性）。轻微瑕疵：轻度组人数证据中 cluster_profiles 为 532、rag 文档为 531，回答取 532 可接受；未提及规则按 lift 排序及 top-3 偏好签名的事务定义，但不影响结论。
+[Critic] 审查通过，输出最终答案
+
+证据：
+【mining】
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【cluster_profiles】
+K-Means 分群结果：K=2，轮廓系数=0.4077
+K 扫描范围 2~8，2 为轮廓系数最高点
+cluster_name  user_count  user_ratio  avg_ratings  avg_active_years  avg_rating
+        轻度用户         532       0.872      106.867             1.070       3.669
+        重度用户          78       0.128      563.885             5.564       3.579
+
+【rag】
+【文档 group_rules · 分组关联规则对比结果】
+分组关联规则对比结果。W4 按 K-Means 分群分组挖掘：重度组 78 人 13 条规则，轻度组 531 人 13 条规则。重度用户信号更纯：Romance 推出 Comedy 在重度组 confidence=1.000，轻度组 0.811。组独有规则：重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。核心规则（情感三角、Sci-Fi 推 Action）跨组稳定，验证全量规则稳健性。注意重度组每条规则仅 5-14 人支撑，属小样本探索性发现。
+
+【文档 apriori_method · Apriori 事务构建方法】
+Apriori 事务构建方法。关联规则事务定义：每位用户取评分>=4 的电影中类型出现次数最多的前 3 个类型，形成偏好签名，共 609 条事务（1 名用户 userId=442 最高评分仅 2.5 被过滤）。v1 定义「看过至少 1 部 4 分片的所有类型」失败：人均 80 部 4 分片几乎覆盖全部类型，主流类型 support 超 95% 无区分度。改为 top-3 偏好后 support 梯度拉开。规则按 lift 而非 confidence 排序：lift=confidence/P(B)，大于 1 才是正相关，高 confidence 可能只是后项本身热门。支撑人数=support 乘以事务数 609。
+
+【文档 apriori_result · Apriori 关联规则结果】
+Apriori 关联规则结果。W4 Apriori 关联规则：min_support=0.05 时挖出 13 条规则（lift>1 且 confidence>=0.5）。典型规则：Romance 推出 Comedy+Drama，confidence 0.78 lift 1.79，83 人支撑；Sci-Fi 推出 Action，confidence 0.80 lift 1.68，40 人支撑；Crime 推出 Drama，confidence 0.94 lift 1.21。情感片三角与科幻动作绑定是主要模式。
+
+最终回答：
+两组规则结构相近，但强度与独有规则不同。重度组信号更纯：Romance→Comedy 的 confidence 为 1.000，轻度组为 0.811；Sci-Fi→Action 的 lift 在轻度组更高（1.7428 对 1.3265）。组独有规则：重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。跨组稳定的是情感三角（Romance、Comedy、Drama 互推）与 Sci-Fi→Action。需注意：重度组仅 78 人，每条规则约 5–14 人支撑，属小样本探索性发现；轻度组 532 人。
+
+硬校验：PASS | 外部评审：PASS | 答案直接对比了两组规则的强度与独有规则，并指出跨组稳定规则；引用的 confidence/lift 数值与证据一致，且明确保留了重度组小样本支撑的限制。轻度组人数532与cluster_profiles一致（rag文档写531，存在轻微不一致但答案采用主表数据，不影响结论）。
+耗时：10.796s
+
+
+######## repeat 4 ########
+R06 | 单 Agent
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[单 Agent] 工具调用：association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; retrieve_knowledge({"query": "Apriori 关联规则 重度用户 轻度用户 差异 稳定规则", "top_k": 3}) -> success
+
+证据：
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【retrieve_knowledge】
+【文档 apriori_result · Apriori 关联规则结果】
+Apriori 关联规则结果。W4 Apriori 关联规则：min_support=0.05 时挖出 13 条规则（lift>1 且 confidence>=0.5）。典型规则：Romance 推出 Comedy+Drama，confidence 0.78 lift 1.79，83 人支撑；Sci-Fi 推出 Action，confidence 0.80 lift 1.68，40 人支撑；Crime 推出 Drama，confidence 0.94 lift 1.21。情感片三角与科幻动作绑定是主要模式。
+
+【文档 apriori_method · Apriori 事务构建方法】
+Apriori 事务构建方法。关联规则事务定义：每位用户取评分>=4 的电影中类型出现次数最多的前 3 个类型，形成偏好签名，共 609 条事务（1 名用户 userId=442 最高评分仅 2.5 被过滤）。v1 定义「看过至少 1 部 4 分片的所有类型」失败：人均 80 部 4 分片几乎覆盖全部类型，主流类型 support 超 95% 无区分度。改为 top-3 偏好后 support 梯度拉开。规则按 lift 而非 confidence 排序：lift=confidence/P(B)，大于 1 才是正相关，高 confidence 可能只是后项本身热门。支撑人数=support 乘以事务数 609。
+
+【文档 group_rules · 分组关联规则对比结果】
+分组关联规则对比结果。W4 按 K-Means 分群分组挖掘：重度组 78 人 13 条规则，轻度组 531 人 13 条规则。重度用户信号更纯：Romance 推出 Comedy 在重度组 confidence=1.000，轻度组 0.811。组独有规则：重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。核心规则（情感三角、Sci-Fi 推 Action）跨组稳定，验证全量规则稳健性。注意重度组每条规则仅 5-14 人支撑，属小样本探索性发现。
+
+最终回答：
+结论：核心规则跨组稳定，差异主要在信号纯度与独有规则族。
+
+- 稳定规则：Romance→Comedy+Drama（重度 lift 1.79 / 轻度 1.80）、Sci-Fi→Action（1.33 / 1.74）、Adventure→Action、Crime→Drama 在两组均出现，验证全量规则稳健。
+- 重度组更纯：Romance→Comedy 置信度 1.000（轻度 0.811），Drama+Romance→Comedy 也达 1.000；独有 Crime 复合规则族（Crime→Comedy、Crime+Drama→Comedy）。
+- 轻度组独有：Thriller 系规则（Crime+Thriller→Drama、Comedy+Thriller→Drama）及 Romance→Drama。
+- 注意：重度组 78 人、每条规则仅 5–14 人支撑，属小样本探索性发现。
+
+硬校验：FAIL | 外部评审：PASS | 答案直接对比两组规则，稳定规则与独有规则均与证据一致；置信度、lift 数值引用准确；并明确提示重度组小样本限制，未夸大结论。
+耗时：2.587s
+
+
+######## repeat 4 ########
+R06 | 多 Agent 串行
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[Planner] 路由=['mining', 'rag'] | 需要数据挖掘的用户分群与关联规则对比分析，并解释关联规则/稳定性指标的方法论含义。
+[挖掘Agent] 工具调用: association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; cluster_profiles({}) -> success
+[挖掘Agent] 证据: ## 重度 vs 轻度用户关联规则差异
+
+**分群背景**：K=2（轮廓系数 0.4077），轻度用户 532 人（87.2%，人均 106.9 条评分、活跃 1.07 年、均分 3.669）；重度用户 78 人（12.8%，人均 563.9 条评分、活跃 5.56 年、均分 3.579）。
+
+### 一、跨组稳定规则（核心共性）
+
+| 规则 | 重度 support / conf / lift ...
+[RAG Agent] 子查询: 重度用户关联规则特征 | 轻度用户关联规则特征 | 跨组稳定关联规则
+[RAG Agent] 检索后端: hybrid | 召回文档: group_rules, apriori_method, apriori_result（得分 0.4389/0.3748/0.3416）
+[RAG Agent] 证据: **分组差异：**
+
+- **样本与规则数**：W4 按 K-Means 分群挖掘，重度组 78 人、13 条规则；轻度组 531 人、13 条规则。
+- **信号纯度**：重度用户信号更纯。例如 Romance 推出 Comedy 在重度组 confidence=1.000，轻度组为 0.811。
+- **组独有规则**：重度组有 Crime 复合规则族；轻度组有 Thriller 系规则。
+
+...
+[Synthesizer] 草稿: **结论**：两组规则结构相似，但重度组信号更纯、有 Crime 复合规则族；轻度组独有 Thriller 系规则。情感三角与 Sci-Fi→Action 跨组稳定。
+
+**差异**
+- 重度组：Romance→Comedy 的 confidence 为 1.000，轻度组为 0.811；重度组另有...
+[Critic·硬校验] PASS | 8 个数字通过出处/关系/格式检查，Fact=12
+[Critic] PASS | 结论与原始证据一致：重度组 Romance→Comedy confidence=1.000、轻度组 0.811；重度组有 Crime 复合规则族（Crime→Drama 等），轻度组有 Thriller 系规则（Crime+Thriller→Drama、Comedy+Thriller→Drama）；所列 6 条跨组稳定规则在两组规则表中均出现，情感三角与 Sci-Fi→Action 稳定成立。直接回答了差异与稳定性两个问题。限制说明充分：指出重度组小样本（78 人、每条规则 5–14 人支撑）属探索性发现，并主动披露轻度组 531 vs 532 的人数出入。无夸大或关键遗漏。
+[Critic] 审查通过，输出最终答案
+
+证据：
+【mining】
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【cluster_profiles】
+K-Means 分群结果：K=2，轮廓系数=0.4077
+K 扫描范围 2~8，2 为轮廓系数最高点
+cluster_name  user_count  user_ratio  avg_ratings  avg_active_years  avg_rating
+        轻度用户         532       0.872      106.867             1.070       3.669
+        重度用户          78       0.128      563.885             5.564       3.579
+
+【rag】
+【文档 group_rules · 分组关联规则对比结果】
+分组关联规则对比结果。W4 按 K-Means 分群分组挖掘：重度组 78 人 13 条规则，轻度组 531 人 13 条规则。重度用户信号更纯：Romance 推出 Comedy 在重度组 confidence=1.000，轻度组 0.811。组独有规则：重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。核心规则（情感三角、Sci-Fi 推 Action）跨组稳定，验证全量规则稳健性。注意重度组每条规则仅 5-14 人支撑，属小样本探索性发现。
+
+【文档 apriori_method · Apriori 事务构建方法】
+Apriori 事务构建方法。关联规则事务定义：每位用户取评分>=4 的电影中类型出现次数最多的前 3 个类型，形成偏好签名，共 609 条事务（1 名用户 userId=442 最高评分仅 2.5 被过滤）。v1 定义「看过至少 1 部 4 分片的所有类型」失败：人均 80 部 4 分片几乎覆盖全部类型，主流类型 support 超 95% 无区分度。改为 top-3 偏好后 support 梯度拉开。规则按 lift 而非 confidence 排序：lift=confidence/P(B)，大于 1 才是正相关，高 confidence 可能只是后项本身热门。支撑人数=support 乘以事务数 609。
+
+【文档 apriori_result · Apriori 关联规则结果】
+Apriori 关联规则结果。W4 Apriori 关联规则：min_support=0.05 时挖出 13 条规则（lift>1 且 confidence>=0.5）。典型规则：Romance 推出 Comedy+Drama，confidence 0.78 lift 1.79，83 人支撑；Sci-Fi 推出 Action，confidence 0.80 lift 1.68，40 人支撑；Crime 推出 Drama，confidence 0.94 lift 1.21。情感片三角与科幻动作绑定是主要模式。
+
+最终回答：
+结论：两组规则结构相似，但重度组信号更纯、有 Crime 复合规则族；轻度组独有 Thriller 系规则。情感三角与 Sci-Fi→Action 跨组稳定。
+
+差异
+- 重度组：Romance→Comedy 的 confidence 为 1.000，轻度组为 0.811；重度组另有 Crime 复合规则族（如 Crime→Drama，confidence 1.000）。
+- 轻度组：独有 Thriller 系规则（Crime+Thriller→Drama、Comedy+Thriller→Drama）。
+
+跨组稳定：Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama 在两组均出现。
+
+注意：重度组仅 78 人，每条规则仅 5–14 人支撑，属小样本探索性发现；分组挖掘中轻度组为 531 人，与分群表的 532 人略有出入。
+
+硬校验：PASS | 外部评审：PASS | 答案直接回应差异与跨组稳定规则，结论与证据一致：重度组Romance→Comedy置信度1.000、轻度组0.811，重度组有Crime复合规则，轻度组有Thriller系规则，所列稳定规则均在两组规则表中出现。已注明重度组小样本限制及轻度组人数出入，未夸大。
+耗时：12.088s
+
+
+######## repeat 4 ########
+R06 | 多 Agent 并行
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[Planner] 路由=['mining', 'rag'] | 需要数据挖掘的用户分群与关联规则对比结论，并解释关联规则/稳定性指标的方法论含义。
+[挖掘Agent] 工具调用: association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; cluster_profiles({}) -> success
+[挖掘Agent] 证据: ## 重度 vs 轻度用户关联规则差异
+
+**分群背景**：K=2（轮廓系数 0.4077），轻度用户 532 人（87.2%，人均 106.9 条评分、活跃 1.07 年、均分 3.669）；重度用户 78 人（12.8%，人均 563.9 条评分、活跃 5.56 年、均分 3.579）。
+
+### 一、跨组稳定规则（核心骨架）
+
+| 规则 | 重度 support / conf / lift ...
+[RAG Agent] 子查询: 重度用户关联规则特征 | 轻度用户关联规则特征 | 跨组稳定关联规则
+[RAG Agent] 检索后端: hybrid | 召回文档: group_rules, apriori_method, apriori_result（得分 0.4389/0.3748/0.3416）
+[RAG Agent] 证据: **重度组与轻度组的规则差异：**
+
+- **信号纯度不同**：重度用户信号更纯。以 Romance 推出 Comedy 为例，重度组 confidence=1.000，轻度组为 0.811。
+- **组独有规则不同**：重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。
+- **样本规模差异大**：重度组 78 人、13 条规则；轻度组 531 人、13 条规则。重度组每条规...
+[Synthesizer] 草稿: **结论**：两组规则结构相似，但重度组信号更纯、有 Crime 复合规则族；轻度组独有 Thriller 系规则。情感三角与 Sci-Fi→Action 跨组稳定。
+
+**差异**
+- 重度组：Romance→Comedy 的 confidence 为 1.000，轻度组为 0.811；重度组另有...
+[Critic·硬校验] PASS | 8 个数字通过出处/关系/格式检查，Fact=12
+[Critic] PASS | 结论与原始证据一致：重度组 Romance→Comedy confidence=1.000、轻度组 0.811；重度组 Crime 复合规则族、轻度组 Thriller 系规则均为组内独有；所列 6 条跨组稳定规则在两组规则表中均出现。直接回答了差异与稳定性两问，并保留了小样本（5–14 人支撑）与 531/532 人数出入的关键限制，无夸大。可补充说明规则按 lift 排序、confidence 高可能受后项热门影响，但不影响结论成立。
+[Critic] 审查通过，输出最终答案
+
+证据：
+【mining】
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【cluster_profiles】
+K-Means 分群结果：K=2，轮廓系数=0.4077
+K 扫描范围 2~8，2 为轮廓系数最高点
+cluster_name  user_count  user_ratio  avg_ratings  avg_active_years  avg_rating
+        轻度用户         532       0.872      106.867             1.070       3.669
+        重度用户          78       0.128      563.885             5.564       3.579
+
+【rag】
+【文档 group_rules · 分组关联规则对比结果】
+分组关联规则对比结果。W4 按 K-Means 分群分组挖掘：重度组 78 人 13 条规则，轻度组 531 人 13 条规则。重度用户信号更纯：Romance 推出 Comedy 在重度组 confidence=1.000，轻度组 0.811。组独有规则：重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。核心规则（情感三角、Sci-Fi 推 Action）跨组稳定，验证全量规则稳健性。注意重度组每条规则仅 5-14 人支撑，属小样本探索性发现。
+
+【文档 apriori_method · Apriori 事务构建方法】
+Apriori 事务构建方法。关联规则事务定义：每位用户取评分>=4 的电影中类型出现次数最多的前 3 个类型，形成偏好签名，共 609 条事务（1 名用户 userId=442 最高评分仅 2.5 被过滤）。v1 定义「看过至少 1 部 4 分片的所有类型」失败：人均 80 部 4 分片几乎覆盖全部类型，主流类型 support 超 95% 无区分度。改为 top-3 偏好后 support 梯度拉开。规则按 lift 而非 confidence 排序：lift=confidence/P(B)，大于 1 才是正相关，高 confidence 可能只是后项本身热门。支撑人数=support 乘以事务数 609。
+
+【文档 apriori_result · Apriori 关联规则结果】
+Apriori 关联规则结果。W4 Apriori 关联规则：min_support=0.05 时挖出 13 条规则（lift>1 且 confidence>=0.5）。典型规则：Romance 推出 Comedy+Drama，confidence 0.78 lift 1.79，83 人支撑；Sci-Fi 推出 Action，confidence 0.80 lift 1.68，40 人支撑；Crime 推出 Drama，confidence 0.94 lift 1.21。情感片三角与科幻动作绑定是主要模式。
+
+最终回答：
+结论：两组规则结构相似，但重度组信号更纯、有 Crime 复合规则族；轻度组独有 Thriller 系规则。情感三角与 Sci-Fi→Action 跨组稳定。
+
+差异
+- 重度组：Romance→Comedy 的 confidence 为 1.000，轻度组为 0.811；重度组另有 Crime 复合规则族（如 Crime→Drama，confidence 1.000）。
+- 轻度组：独有 Thriller 系规则（Crime+Thriller→Drama、Comedy+Thriller→Drama）。
+
+跨组稳定：Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama 在两组均出现。
+
+注意：重度组仅 78 人，每条规则仅 5–14 人支撑，属小样本探索性发现；分组挖掘中轻度组为 531 人，与分群表的 532 人略有出入。
+
+硬校验：PASS | 外部评审：PASS | 答案直接回应差异与跨组稳定规则，结论与证据一致：重度组Romance→Comedy置信度1.000、轻度组0.811，重度组有Crime复合规则，轻度组有Thriller系规则，所列稳定规则均在两组出现。已注明重度组小样本限制及轻度组人数出入，未夸大。
+耗时：9.838s
+
+
+######## repeat 5 ########
+R06 | 单 Agent
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[单 Agent] 工具调用：association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; retrieve_knowledge({"query": "Apriori 关联规则 重度用户 轻度用户 差异 稳定规则", "top_k": 3}) -> success
+
+证据：
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【retrieve_knowledge】
+【文档 apriori_result · Apriori 关联规则结果】
+Apriori 关联规则结果。W4 Apriori 关联规则：min_support=0.05 时挖出 13 条规则（lift>1 且 confidence>=0.5）。典型规则：Romance 推出 Comedy+Drama，confidence 0.78 lift 1.79，83 人支撑；Sci-Fi 推出 Action，confidence 0.80 lift 1.68，40 人支撑；Crime 推出 Drama，confidence 0.94 lift 1.21。情感片三角与科幻动作绑定是主要模式。
+
+【文档 apriori_method · Apriori 事务构建方法】
+Apriori 事务构建方法。关联规则事务定义：每位用户取评分>=4 的电影中类型出现次数最多的前 3 个类型，形成偏好签名，共 609 条事务（1 名用户 userId=442 最高评分仅 2.5 被过滤）。v1 定义「看过至少 1 部 4 分片的所有类型」失败：人均 80 部 4 分片几乎覆盖全部类型，主流类型 support 超 95% 无区分度。改为 top-3 偏好后 support 梯度拉开。规则按 lift 而非 confidence 排序：lift=confidence/P(B)，大于 1 才是正相关，高 confidence 可能只是后项本身热门。支撑人数=support 乘以事务数 609。
+
+【文档 group_rules · 分组关联规则对比结果】
+分组关联规则对比结果。W4 按 K-Means 分群分组挖掘：重度组 78 人 13 条规则，轻度组 531 人 13 条规则。重度用户信号更纯：Romance 推出 Comedy 在重度组 confidence=1.000，轻度组 0.811。组独有规则：重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。核心规则（情感三角、Sci-Fi 推 Action）跨组稳定，验证全量规则稳健性。注意重度组每条规则仅 5-14 人支撑，属小样本探索性发现。
+
+最终回答：
+结论：核心规则跨组稳定，差异主要在信号纯度与组独有规则族。
+
+- 跨组稳定：Romance→Comedy+Drama（重度 lift 1.79、轻度 1.80）、Romance→Comedy、Drama+Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama 在两组都出现，验证全量规则稳健。
+- 重度组更纯：Romance→Comedy 置信度 1.000（轻度 0.811）；Drama+Romance→Comedy 1.000（轻度 0.818）。
+- 组独有：重度组有 Crime 复合规则族（Crime→Comedy、Comedy+Crime→Drama 等）；轻度组有 Thriller 系规则（Crime+Thriller→Drama、Comedy+Thriller→Drama）。
+- 注意：重度组 78 人、每条规则仅 5–14 人支撑，属小样本探索性发现。
+
+硬校验：FAIL | 外部评审：PASS | 答案直接对比两组规则，所列稳定规则、置信度差异、组独有规则族及小样本限制均与证据一致，无夸大或遗漏关键限制。
+耗时：3.024s
+
+
+######## repeat 5 ########
+R06 | 多 Agent 串行
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[Planner] 路由=['mining', 'rag'] | 需要数据挖掘的用户分群与关联规则对比分析，并解释关联规则/稳定性指标的方法论含义。
+[挖掘Agent] 工具调用: association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; association_rules({"group": "all", "top_n": 10}) -> success
+[挖掘Agent] 证据: ## 重度用户与轻度用户关联规则对比
+
+### 一、跨组稳定规则（两组均出现，且方向一致）
+
+| 规则 | 重度 lift / conf | 轻度 lift / conf | 稳定性判断 |
+|---|---|---|---|
+| Romance → Comedy+Drama | 1.79 / 0.92 | 1.80 / 0.76 | **最稳定**，lift 几乎相同，是两组最强的规则 |
+| ...
+[RAG Agent] 子查询: 重度用户关联规则特征 | 轻度用户关联规则特征 | 跨组稳定关联规则
+[RAG Agent] 检索后端: hybrid | 召回文档: group_rules, apriori_method, apriori_result（得分 0.4389/0.3748/0.3416）
+[RAG Agent] 证据: **分组差异：**
+
+- **样本与规则数**：W4 按 K-Means 分群挖掘，重度组 78 人、13 条规则；轻度组 531 人、13 条规则。
+- **信号纯度**：重度用户信号更纯。例如 Romance 推出 Comedy 在重度组 confidence=1.000，轻度组为 0.811。
+- **组独有规则**：重度组有 Crime 复合规则族；轻度组有 Thriller 系规则。
+-...
+[Synthesizer] 草稿: **结论**：两组共享“情感三角（Romance/Drama/Comedy）”与“Sci-Fi→Action”骨架，但重度组信号更纯、规则更集中；轻度组规则更分散，并出现 Thriller 系规则。重度组每条规则仅 5–14 人支撑，属小样本探索性发现。
+
+**差异**：Romance→Comedy...
+[Critic·硬校验] PASS | 8 个数字通过出处/关系/格式检查，Fact=0
+[Critic] PASS | 结论与原始证据一致：情感三角与 Sci-Fi→Action 在重度、轻度及全量规则中均出现，可称跨组稳定；Romance→Comedy 的 confidence 重度 1.000、轻度 0.811 与证据相符；重度组 Crime 复合规则族、轻度组 Thriller 系规则（Crime+Thriller→Drama、Comedy+Thriller→Drama）均有据；分组规模 78/531、各 13 条规则与文档一致；小样本限制（每条规则 5–14 人支撑）已明确标注。回答直接回应了差异与稳定性两个问题，未发现夸大或关键遗漏。
+[Critic] 审查通过，输出最终答案
+
+证据：
+【mining】
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【association_rules】
+全量用户关联规则（min_support=0.05，609 条事务）
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1363      0.7757 1.7894
+         Sci-Fi       Action   0.0657      0.8000 1.6800
+  Drama+Romance       Comedy   0.1363      0.8384 1.5472
+        Romance       Comedy   0.1461      0.8318 1.5350
+      Adventure       Action   0.1938      0.6243 1.3111
+          Crime        Drama   0.1429      0.9355 1.2096
+ Comedy+Romance        Drama   0.1363      0.9326 1.2058
+ Crime+Thriller        Drama   0.0673      0.9318 1.2048
+        Romance        Drama   0.1626      0.9252 1.1963
+Comedy+Thriller        Drama   0.0805      0.8167 1.0559
+
+【rag】
+【文档 group_rules · 分组关联规则对比结果】
+分组关联规则对比结果。W4 按 K-Means 分群分组挖掘：重度组 78 人 13 条规则，轻度组 531 人 13 条规则。重度用户信号更纯：Romance 推出 Comedy 在重度组 confidence=1.000，轻度组 0.811。组独有规则：重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。核心规则（情感三角、Sci-Fi 推 Action）跨组稳定，验证全量规则稳健性。注意重度组每条规则仅 5-14 人支撑，属小样本探索性发现。
+
+【文档 apriori_method · Apriori 事务构建方法】
+Apriori 事务构建方法。关联规则事务定义：每位用户取评分>=4 的电影中类型出现次数最多的前 3 个类型，形成偏好签名，共 609 条事务（1 名用户 userId=442 最高评分仅 2.5 被过滤）。v1 定义「看过至少 1 部 4 分片的所有类型」失败：人均 80 部 4 分片几乎覆盖全部类型，主流类型 support 超 95% 无区分度。改为 top-3 偏好后 support 梯度拉开。规则按 lift 而非 confidence 排序：lift=confidence/P(B)，大于 1 才是正相关，高 confidence 可能只是后项本身热门。支撑人数=support 乘以事务数 609。
+
+【文档 apriori_result · Apriori 关联规则结果】
+Apriori 关联规则结果。W4 Apriori 关联规则：min_support=0.05 时挖出 13 条规则（lift>1 且 confidence>=0.5）。典型规则：Romance 推出 Comedy+Drama，confidence 0.78 lift 1.79，83 人支撑；Sci-Fi 推出 Action，confidence 0.80 lift 1.68，40 人支撑；Crime 推出 Drama，confidence 0.94 lift 1.21。情感片三角与科幻动作绑定是主要模式。
+
+最终回答：
+结论：两组共享“情感三角（Romance/Drama/Comedy）”与“Sci-Fi→Action”骨架，但重度组信号更纯、规则更集中；轻度组规则更分散，并出现 Thriller 系规则。重度组每条规则仅 5–14 人支撑，属小样本探索性发现。
+
+差异：Romance→Comedy 在重度组 confidence=1.000，轻度组 0.811；重度组独有 Crime 复合规则族，轻度组独有 Thriller 系规则（如 Crime+Thriller→Drama、Comedy+Thriller→Drama）。
+
+跨组稳定：情感三角与 Sci-Fi→Action 在两组及全量（609 条事务）中均出现，验证稳健性。分组规模：重度组 78 人、轻度组 531 人，各 13 条规则。
+
+硬校验：PASS | 外部评审：PASS | 答案直接回应差异与跨组稳定问题，结论与证据一致：Romance→Comedy 置信度、Crime 复合规则族、Thriller 系规则、情感三角与 Sci-Fi→Action 稳定、重度组小样本限制均有据；未发现夸大或关键遗漏。
+耗时：11.801s
+
+
+######## repeat 5 ########
+R06 | 多 Agent 并行
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[Planner] 路由=['mining', 'sql'] | 需要按用户活跃度分群并挖掘关联规则差异，同时查询评分数据以支撑分群与规则计算。
+[挖掘Agent] 工具调用: association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; association_rules({"group": "all", "top_n": 10}) -> success
+[挖掘Agent] 证据: ## 重度用户与轻度用户关联规则差异分析
+
+### 一、两组共有的稳定规则（跨组稳定）
+
+以下规则在重度、轻度及全量三组中均出现，方向一致，属于**结构性稳定规则**：
+
+| 规则 | 重度 lift | 轻度 lift | 全量 lift | 稳定性 |
+|---|---|---|---|---|
+| Romance → Comedy+Drama | 1.79 | 1.80 | 1.79 | ★...
+[检索Agent] 工具调用: run_sql({"sql": "SELECT COUNT(*) AS n_users, MIN(cnt) AS min_r, MAX(cnt) AS max_r, AVG(cnt) AS avg_r, MEDIAN(cnt) AS med_r FROM (SELECT userId, COUNT(*) AS cn) -> success; run_sql({"sql": "SELECT quantile_cont(cnt, [0.1,0.25,0.5,0.75,0.9]) AS qs FROM (SELECT userId, COUNT(*) AS cnt FROM ratings GROUP BY userId)"}) -> error; run_sql({"sql": "SELECT\n  quantile_cont(cnt,0.1) AS p10, quantile_cont(cnt,0.25) AS p25, quantile_cont(cnt,0.5) AS p50,\n  quantile_cont(cnt,0.75) AS p75, qu) -> success; run_sql({"sql": "WITH u AS (\n  SELECT userId, COUNT(*) AS cnt FROM ratings GROUP BY userId\n),\ngrp AS (\n  SELECT userId, CASE WHEN cnt <= 70 THEN 'light' E) -> success; run_sql({"sql": "WITH u AS (SELECT userId, COUNT(*) AS cnt FROM ratings GROUP BY userId),\ngrp AS (SELECT userId, CASE WHEN cnt <= 70 THEN 'light' ELSE 'heavy) -> success
+[检索Agent] 证据: （工具轮次用尽）完整查询结果共 38 行；当前展示 15 行；排序依据：s.genre, s.grp；展示行数不等于总数
+  grp       genre   c  n_users  support
+heavy      Action 305      305    1.000
+light      Action 303      305    0.993
+heavy   Adventure 3...
+[Synthesizer] 草稿: **结论：两组共享“Romance→Comedy+Drama、Sci-Fi→Action、Adventure→Action”等骨架规则，但重度组置信度更高、更“确定性”；轻度组规则更多元，且 Crime/Thriller 类规则更突出。**
+
+差异：重度组 Romance→Comedy+Drama ...
+[Critic·硬校验] PASS | 9 个数字通过出处/关系/格式检查，Fact=119
+[Critic] REVISE | 主要问题：1) 结论“重度组置信度更高、更‘确定性’”过度概括——证据只显示 Romance→Comedy+Drama、Drama+Romance→Comedy 两条规则重度组置信度更高，而 Sci-Fi→Action（0.7143 vs 0.8140）、Adventure→Action（0.6364 vs 0.6228 接近）等并不支持该全局结论，应限定为“部分规则”。2) “轻度组规则更多元”缺乏证据支撑：两组各展示 10 条规则，且分组 SQL 共 333 行仅展示 15 行，无法判断规则数量或多样性差异，应删除或改为“在展示的规则中”。3) “轻度组独有 Crime+Thriller→Drama、Comedy+Thriller→Drama”表述不准确：这两条在重度组展示列表中确实缺失，但重度组仅展示 10 条规则（非全部），不能断言“独有”，应改为“在展示的规则中仅见于轻度组”。4) 跨组稳定规则中“Crime→Drama 在两组及全量均出现”正确，但应补充说明其置信度在轻度组（0.9286）低于重度组（1.0000），lift 方向一致但强度有差异。5) 遗漏关键限制：分组规则展示不完整（333 行仅 15 行），无法全面比较两组规则集合；且未说明支持度阈值是否一致。建议明确标注证据局限性，并将差异描述限定在已展示的规则范围内。
+[Synthesizer] 草稿: 在已展示的规则中，两组差异主要体现在部分规则的置信度上，而非整体确定性：Romance→Comedy+Drama 的重度组置信度为 0.9167，轻度组为 0.7579；Drama+Romance→Comedy 的重度组为 1.0000，轻度组为 0.8182。但 Sci-Fi→Action 的重度...
+[Critic·硬校验] PASS | 10 个数字通过出处/关系/格式检查，Fact=119
+[Critic] PASS | 结论与证据一致：置信度差异举例（Romance→Comedy+Drama 0.9167 vs 0.7579；Drama+Romance→Comedy 1.0000 vs 0.8182）准确，且正确指出 Sci-Fi→Action 反向（0.7143 < 0.8140），避免过度概括。跨组稳定规则列表均可在重度、轻度及全量结果中对应，Crime→Drama 的置信度与 lift 描述无误；Crime+Thriller→Drama、Comedy+Thriller→Drama 仅见于轻度组的判断正确。局限说明（333 行仅展示 15 行、支持度阈值未说明）恰当，未夸大。回答直接回应了差异与稳定性两个问题。
+[Critic] 审查通过，输出最终答案
+
+证据：
+【mining】
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【association_rules】
+全量用户关联规则（min_support=0.05，609 条事务）
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1363      0.7757 1.7894
+         Sci-Fi       Action   0.0657      0.8000 1.6800
+  Drama+Romance       Comedy   0.1363      0.8384 1.5472
+        Romance       Comedy   0.1461      0.8318 1.5350
+      Adventure       Action   0.1938      0.6243 1.3111
+          Crime        Drama   0.1429      0.9355 1.2096
+ Comedy+Romance        Drama   0.1363      0.9326 1.2058
+ Crime+Thriller        Drama   0.0673      0.9318 1.2048
+        Romance        Drama   0.1626      0.9252 1.1963
+Comedy+Thriller        Drama   0.0805      0.8167 1.0559
+
+【sql】
+【run_sql】
+完整查询结果共 1 行；当前展示 1 行；排序依据：未指定 ORDER BY
+ n_users  min_r  max_r      avg_r  med_r
+     610     20   2698 165.304918   70.5
+
+【run_sql】
+完整查询结果共 1 行；当前展示 1 行；排序依据：未指定 ORDER BY
+ p10  p25  p50   p75   p90
+24.0 35.0 70.5 168.0 400.3
+
+【run_sql】
+完整查询结果共 333 行；当前展示 15 行；排序依据：p.grp, lift DESC；展示行数不等于总数
+  grp           x         y  support_xy  conf_x_to_y  conf_y_to_x  lift
+heavy Documentary Film-Noir      0.4525       0.7709       0.7005 1.194
+heavy Documentary   Western      0.5311       0.9050       0.6160 1.050
+heavy   Film-Noir   Western      0.5770       0.8934       0.6692 1.036
+heavy     Musical   Western      0.8328       0.8850       0.9658 1.026
+heavy   Animation      IMAX      0.8721       0.9110       0.9744 1.018
+heavy   Animation  Children      0.9475       0.9897       0.9731 1.016
+heavy    Children      IMAX      0.8852       0.9091       0.9890 1.016
+heavy   Animation   Musical      0.9148       0.9555       0.9721 1.015
+heavy Documentary      IMAX      0.5311       0.9050       0.5934 1.011
+heavy   Film-Noir    Horror      0.6393       0.9898       0.6522 1.010
+heavy      Horror   Musical      0.9311       0.9498       0.9895 1.009
+heavy      Horror   Western      0.8525       0.8696       0.9886 1.008
+heavy        IMAX   Western      0.7770       0.8681       0.9011 1.007
+heavy Documentary       War      0.5869       1.0000       0.5908 1.007
+heavy    Children   Western      0.8459       0.8687       0.9810 1.007
+
+【run_sql】
+完整查询结果共 38 行；当前展示 15 行；排序依据：s.genre, s.grp；展示行数不等于总数
+  grp       genre   c  n_users  support
+heavy      Action 305      305    1.000
+light      Action 303      305    0.993
+heavy   Adventure 305      305    1.000
+light   Adventure 301      305    0.987
+heavy   Animation 292      305    0.957
+light   Animation 235      305    0.770
+heavy    Children 297      305    0.974
+light    Children 262      305    0.859
+heavy      Comedy 305      305    1.000
+light      Comedy 304      305    0.997
+heavy       Crime 305      305    1.000
+light       Crime 298      305    0.977
+heavy Documentary 179      305    0.587
+light Documentary  44      305    0.144
+heavy       Drama 305      305    1.000
+
+最终回答：
+在已展示的规则中，两组差异主要体现在部分规则的置信度上，而非整体确定性：Romance→Comedy+Drama 的重度组置信度为 0.9167，轻度组为 0.7579；Drama+Romance→Comedy 的重度组为 1.0000，轻度组为 0.8182。但 Sci-Fi→Action 的重度组置信度为 0.7143，低于轻度组的 0.8140，因此不能概括为重度组普遍更高。
+
+跨组稳定规则包括 Romance→Comedy+Drama、Sci-Fi→Action、Drama+Romance→Comedy、Romance→Comedy、Adventure→Action、Crime→Drama、Comedy+Romance→Drama、Romance→Drama，这些规则在两组及全量结果中均出现。其中 Crime→Drama 的置信度在轻度组为 0.9286，低于重度组的 1.0000，lift 方向一致但强度有差异。Crime+Thriller→Drama、Comedy+Thriller→Drama 在展示的规则中仅见于轻度组。
+
+局限：分组规则共 333 行，仅展示 15 行，无法全面比较两组规则集合；支持度阈值是否一致未说明。
+
+硬校验：PASS | 外部评审：PASS | 答案直接比较了展示规则中两组置信度差异，并明确指出Sci-Fi→Action反向，避免过度概括；跨组稳定规则均能在两组及全量结果中对应，Crime+Thriller→Drama和Comedy+Thriller→Drama仅见于轻度组的判断与证据一致；局限说明也准确反映了展示行数不全和阈值未说明的问题。
+耗时：18.794s
+
+
+######## repeat 6 ########
+R06 | 单 Agent
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[单 Agent] 工具调用：association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; retrieve_knowledge({"query": "Apriori 关联规则 重度用户 轻度用户 差异 稳定规则", "top_k": 3}) -> success
+
+证据：
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【retrieve_knowledge】
+【文档 apriori_result · Apriori 关联规则结果】
+Apriori 关联规则结果。W4 Apriori 关联规则：min_support=0.05 时挖出 13 条规则（lift>1 且 confidence>=0.5）。典型规则：Romance 推出 Comedy+Drama，confidence 0.78 lift 1.79，83 人支撑；Sci-Fi 推出 Action，confidence 0.80 lift 1.68，40 人支撑；Crime 推出 Drama，confidence 0.94 lift 1.21。情感片三角与科幻动作绑定是主要模式。
+
+【文档 apriori_method · Apriori 事务构建方法】
+Apriori 事务构建方法。关联规则事务定义：每位用户取评分>=4 的电影中类型出现次数最多的前 3 个类型，形成偏好签名，共 609 条事务（1 名用户 userId=442 最高评分仅 2.5 被过滤）。v1 定义「看过至少 1 部 4 分片的所有类型」失败：人均 80 部 4 分片几乎覆盖全部类型，主流类型 support 超 95% 无区分度。改为 top-3 偏好后 support 梯度拉开。规则按 lift 而非 confidence 排序：lift=confidence/P(B)，大于 1 才是正相关，高 confidence 可能只是后项本身热门。支撑人数=support 乘以事务数 609。
+
+【文档 group_rules · 分组关联规则对比结果】
+分组关联规则对比结果。W4 按 K-Means 分群分组挖掘：重度组 78 人 13 条规则，轻度组 531 人 13 条规则。重度用户信号更纯：Romance 推出 Comedy 在重度组 confidence=1.000，轻度组 0.811。组独有规则：重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。核心规则（情感三角、Sci-Fi 推 Action）跨组稳定，验证全量规则稳健性。注意重度组每条规则仅 5-14 人支撑，属小样本探索性发现。
+
+最终回答：
+结论：核心规则跨组稳定，差异主要在信号纯度与组独有规则族。
+
+- 跨组稳定：Romance→Comedy+Drama（重度 lift 1.79、轻度 1.80）、Romance→Comedy、Drama+Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama 均两组出现，验证全量规则稳健。
+- 重度更纯：Romance→Comedy 置信度 1.000（轻度 0.811）；Drama+Romance→Comedy 1.000 vs 0.818。
+- 组独有：重度有 Crime 复合规则族（Crime+Comedy→Drama 等）；轻度有 Thriller 系（Crime+Thriller→Drama、Comedy+Thriller→Drama）。
+- 注意：重度组 78 人、每条规则仅 5–14 人支撑，属小样本探索性发现。
+
+硬校验：FAIL | 外部评审：PASS | 答案直接回应差异与跨组稳定规则，所列稳定规则、置信度对比、组独有规则族及小样本限制均与证据一致，无夸大或遗漏关键限制。
+耗时：2.614s
+
+
+######## repeat 6 ########
+R06 | 多 Agent 串行
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[Planner] 路由=['mining', 'rag'] | 需要数据挖掘的用户分群与关联规则对比结论，以及关联规则/支持度置信度等概念解释
+[挖掘Agent] 工具调用: association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; cluster_profiles({}) -> success
+[挖掘Agent] 证据: ## 重度 vs 轻度用户关联规则差异分析
+
+**分群背景**（K=2，轮廓系数 0.4077）：重度用户仅 78 人（12.8%），但人均评分 563.9 条、活跃 5.56 年；轻度用户 532 人（87.2%），人均仅 106.9 条、活跃 1.07 年。两组平均评分接近（3.58 vs 3.67）。
+
+### 一、跨组稳定的规则（核心共性）
+
+| 规则 | 重度 support / con...
+[RAG Agent] 子查询: 重度用户关联规则特征 | 轻度用户关联规则特征 | 跨组稳定关联规则
+[RAG Agent] 检索后端: hybrid | 召回文档: group_rules, apriori_method, apriori_result（得分 0.4389/0.3748/0.3416）
+[RAG Agent] 证据: **分组差异：**
+
+- **样本与规则数**：W4 按 K-Means 分群分组挖掘，重度组 78 人、13 条规则；轻度组 531 人、13 条规则。
+- **信号纯度**：重度用户信号更纯。例如 Romance 推出 Comedy 在重度组 confidence=1.000，轻度组为 0.811。
+- **组独有规则**：重度组有 Crime 复合规则族；轻度组有 Thriller 系规则。...
+[Synthesizer] 草稿: **结论**：两组规则结构相近，但重度组信号更纯、规则更集中；情感片三角与 Sci-Fi→Action 跨组稳定。
+
+**差异**：重度组 Romance→Comedy 的 confidence 为 1.000，轻度组为 0.811；重度组独有 Crime 复合规则族，轻度组独有 Thriller ...
+[Critic·硬校验] PASS | 10 个数字通过出处/关系/格式检查，Fact=12
+[Critic] REVISE | 结论方向与证据一致，但存在两处需修正：(1) 稳定规则清单中 'Crime→Drama' 在重度组 confidence=1.000、轻度组 0.9286，确实两组均出现，可保留；但 'Adventure→Action' 两组 lift 分别为 1.1818 与 1.3334，均>1，可保留。真正的问题是遗漏了轻度组独有的 'Romance→Drama'（confidence 0.9263, lift 1.2175）和 'Comedy+Romance→Drama' 等情感三角变体，回答称'情感片三角跨组稳定'但未说明轻度组三角方向更丰富（Romance→Drama 仅在轻度组出现），属关键限制遗漏。(2) 样本量表述：文档称轻度组 531 人、重度组 78 人，而 cluster_profiles 为 532/78，回答采用 532 未说明与 rag 文档 531 的 1 人不一致，应注明口径差异或取一致来源。建议补充：轻度组独有 Romance→Drama 方向、重度组 Crime 族的具体规则（Crime→Comedy、Crime+Drama→Comedy 等），并明确'信号更纯'仅指 confidence 更高而非 lift 更高（重度组 Romance→Comedy lift 1.625 低于轻度组 1.5262？实际重度 1.625>轻度 1.5262，可保留但需精确表述）。
+[Synthesizer] 草稿: **结论**：两组共享情感片三角与 Sci-Fi→Action 等核心规则，但重度组信号更“纯”（confidence 更高），轻度组情感三角方向更丰富，并独有 Thriller 系规则。
+
+**差异**：重度组 Romance→Comedy confidence 1.000，轻度组 0.811；重...
+[Critic·硬校验] PASS | 11 个数字通过出处/关系/格式检查，Fact=12
+[Critic] PASS | 结论与原始证据一致：重度组 Romance→Comedy confidence=1.000、轻度组 0.811 均与规则表吻合；Crime 复合规则族仅见于重度组，Thriller 系规则仅见于轻度组，判断正确；所列跨组稳定规则（Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama）在两组规则表中均存在且 lift>1，无夸大。直接回答了差异与跨组稳定两个问题。限制说明充分：指出轻度组人数 532 vs 531 的口径差异，并保留重度组小样本（5–14 人支撑）的探索性警示。可补充说明规则按 lift 排序而非 confidence，但不影响结论正确性。
+[Critic] 审查通过，输出最终答案
+
+证据：
+【mining】
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【cluster_profiles】
+K-Means 分群结果：K=2，轮廓系数=0.4077
+K 扫描范围 2~8，2 为轮廓系数最高点
+cluster_name  user_count  user_ratio  avg_ratings  avg_active_years  avg_rating
+        轻度用户         532       0.872      106.867             1.070       3.669
+        重度用户          78       0.128      563.885             5.564       3.579
+
+【rag】
+【文档 group_rules · 分组关联规则对比结果】
+分组关联规则对比结果。W4 按 K-Means 分群分组挖掘：重度组 78 人 13 条规则，轻度组 531 人 13 条规则。重度用户信号更纯：Romance 推出 Comedy 在重度组 confidence=1.000，轻度组 0.811。组独有规则：重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。核心规则（情感三角、Sci-Fi 推 Action）跨组稳定，验证全量规则稳健性。注意重度组每条规则仅 5-14 人支撑，属小样本探索性发现。
+
+【文档 apriori_method · Apriori 事务构建方法】
+Apriori 事务构建方法。关联规则事务定义：每位用户取评分>=4 的电影中类型出现次数最多的前 3 个类型，形成偏好签名，共 609 条事务（1 名用户 userId=442 最高评分仅 2.5 被过滤）。v1 定义「看过至少 1 部 4 分片的所有类型」失败：人均 80 部 4 分片几乎覆盖全部类型，主流类型 support 超 95% 无区分度。改为 top-3 偏好后 support 梯度拉开。规则按 lift 而非 confidence 排序：lift=confidence/P(B)，大于 1 才是正相关，高 confidence 可能只是后项本身热门。支撑人数=support 乘以事务数 609。
+
+【文档 apriori_result · Apriori 关联规则结果】
+Apriori 关联规则结果。W4 Apriori 关联规则：min_support=0.05 时挖出 13 条规则（lift>1 且 confidence>=0.5）。典型规则：Romance 推出 Comedy+Drama，confidence 0.78 lift 1.79，83 人支撑；Sci-Fi 推出 Action，confidence 0.80 lift 1.68，40 人支撑；Crime 推出 Drama，confidence 0.94 lift 1.21。情感片三角与科幻动作绑定是主要模式。
+
+最终回答：
+结论：两组共享情感片三角与 Sci-Fi→Action 等核心规则，但重度组信号更“纯”（confidence 更高），轻度组情感三角方向更丰富，并独有 Thriller 系规则。
+
+差异：重度组 Romance→Comedy confidence 1.000，轻度组 0.811；重度组另有 Crime 复合规则族（Crime→Comedy、Crime+Drama→Comedy 等）。轻度组独有 Romance→Drama（confidence 0.9263、lift 1.2175）及 Comedy+Romance→Drama 等三角变体，还有 Crime+Thriller→Drama、Comedy+Thriller→Drama。
+
+跨组稳定：Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama 两组均出现且 lift>1。
+
+口径与限制：轻度组人数 cluster_profiles 为 532 人，rag 文档记 531 人，差 1 人；重度组 78 人，每条规则仅 5–14 人支撑，属小样本探索性发现。
+
+硬校验：PASS | 外部评审：PASS | 答案直接回应差异与跨组稳定规则，结论与证据一致：重度组Romance→Comedy confidence=1.000、轻度组0.811；重度组Crime复合规则、轻度组Thriller系规则均有据；跨组稳定规则均列于两组表中且lift>1。限制说明准确，指出轻度组人数532与文档531不一致及重度组小样本支撑，未夸大。
+耗时：18.298s
+
+
+######## repeat 6 ########
+R06 | 多 Agent 并行
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[Planner] 路由=['mining', 'sql'] | 需要按用户活跃度分组挖掘关联规则并比较跨组稳定性，同时需查询评分数据以构建分组和规则。
+[挖掘Agent] 工具调用: association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; cluster_profiles({}) -> success
+[挖掘Agent] 证据: ## 重度 vs 轻度用户关联规则差异分析
+
+### 一、分群背景（K-Means，K=2，轮廓系数 0.4077）
+| 群体 | 人数 | 占比 | 平均评分数 | 平均活跃年数 | 平均评分 |
+|---|---|---|---|---|---|
+| 轻度用户 | 532 | 87.2% | 106.9 | 1.07 | 3.669 |
+| 重度用户 | 78 | 12.8% | 563.9 ...
+[检索Agent] 工具调用: run_sql({"sql": "SELECT COUNT(*) AS n_users, MIN(cnt) AS min_r, MAX(cnt) AS max_r, AVG(cnt) AS avg_r, MEDIAN(cnt) AS med_r FROM (SELECT userId, COUNT(*) AS cn) -> success; run_sql({"sql": "SELECT quantile_cont(cnt, [0.1,0.25,0.5,0.75,0.9]) AS qs FROM (SELECT userId, COUNT(*) AS cnt FROM ratings GROUP BY userId)"}) -> error; run_sql({"sql": "SELECT\n quantile_cont(cnt,0.1) AS p10, quantile_cont(cnt,0.25) AS p25, quantile_cont(cnt,0.5) AS p50,\n quantile_cont(cnt,0.75) AS p75, quan) -> success; run_sql({"sql": "WITH u AS (SELECT userId, COUNT(*) AS cnt FROM ratings GROUP BY userId),\ng AS (SELECT userId, CASE WHEN cnt >= 168 THEN 'heavy' ELSE 'light') -> success; run_sql({"sql": "WITH u AS (SELECT userId, COUNT(*) AS cnt FROM ratings GROUP BY userId),\ng AS (SELECT userId, CASE WHEN cnt >= 168 THEN 'heavy' ELSE 'light') -> error
+[检索Agent] 证据: （工具轮次用尽）SQL 执行失败：Parser Error: syntax error at or near "["
+
+LINE 8:        WHEN m.[Film-Noir]=1 THEN 'Film-Noir' WHEN m.Horror=1 THEN 'Horror...
+                      ^...
+[Synthesizer] 草稿: **结论：两组规则高度相似，核心路径稳定；差异主要在置信度与个别类型组合。**
+
+**跨组稳定规则**：Romance→Comedy+Drama（重度 lift 1.7875、轻度 1.7966）、Romance→Comedy（1.6250 / 1.5262）、Drama+Romance→Comed...
+[Critic·硬校验] PASS | 20 个数字通过出处/关系/格式检查，Fact=31
+[Critic] REVISE | 主要问题：1) 结论'两组规则高度相似，核心路径稳定'有夸大——稳定规则仅6条，且部分规则lift差异明显（如Sci-Fi→Action重度1.3265 vs 轻度1.7428，差异达0.42），不能笼统称'高度相似'。2) '重度组置信度普遍更高'不准确：Romance→Comedy+Drama（0.9167 vs 0.7579）、Drama+Romance→Comedy（1.0000 vs 0.8182）、Romance→Comedy（1.0000 vs 0.8105）确实更高，但Sci-Fi→Action（0.7143 vs 0.8140）、Adventure→Action（0.6364 vs 0.6228）并非如此，应改为'部分规则'或具体列举。3) 遗漏关键限制：未说明支持度普遍很低（0.06~0.20），规则统计可靠性有限；未提及两组规则列表长度相同（各10条）但轻度组含更多Drama相关规则，差异描述不完整。4) 分组规模数据与cluster_profiles一致，但未指出K-Means轮廓系数0.4077属中等偏低，分群边界不够清晰，应作为限制说明。建议：将'高度相似'改为'部分核心路径稳定'，逐条列举置信度差异而非概括，补充支持度低和轮廓系数中等的限制说明。
+[Synthesizer] 草稿: 两组规则**部分核心路径稳定，但并非高度相似**。稳定规则共6条：Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama。
+
+差异方面：重度组在Romanc...
+[Critic·硬校验] FAIL | 无证据数字: 0.06, 0.20, 10, 6
+[Critic] FAIL | 已达修订上限，草稿仅留诊断记录
+
+证据：
+【mining】
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【cluster_profiles】
+K-Means 分群结果：K=2，轮廓系数=0.4077
+K 扫描范围 2~8，2 为轮廓系数最高点
+cluster_name  user_count  user_ratio  avg_ratings  avg_active_years  avg_rating
+        轻度用户         532       0.872      106.867             1.070       3.669
+        重度用户          78       0.128      563.885             5.564       3.579
+
+【sql】
+【run_sql】
+完整查询结果共 1 行；当前展示 1 行；排序依据：未指定 ORDER BY
+ n_users  min_r  max_r      avg_r  med_r
+     610     20   2698 165.304918   70.5
+
+【run_sql】
+完整查询结果共 1 行；当前展示 1 行；排序依据：未指定 ORDER BY
+ p10  p25  p50   p75   p90
+24.0 35.0 70.5 168.0 400.3
+
+【run_sql】
+完整查询结果共 2 行；当前展示 2 行；排序依据：grp
+  grp  users  ratings  avg_r
+heavy    154  72121.0  468.3
+light    456  28715.0   63.0
+
+最终回答：
+两组规则部分核心路径稳定，但并非高度相似。稳定规则共6条：Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama。
+
+差异方面：重度组在Romance→Comedy+Drama（0.9167 vs 0.7579）、Drama+Romance→Comedy（1.0000 vs 0.8182）、Romance→Comedy（1.0000 vs 0.8105）上置信度更高；但Sci-Fi→Action（0.7143 vs 0.8140）与Adventure→Action（0.6364 vs 0.6228）轻度组不低甚至更高。lift差异也明显，如Sci-Fi→Action重度1.3265、轻度1.7428。
+
+限制：两组各10条规则，支持度普遍仅0.06~0.20，统计可靠性有限；轻度组含更多Drama相关规则。分群轮廓系数0.4077属中等偏低，边界不够清晰。规模上轻度用户532人、占比87.2%，重度用户78人、占比12.8%。
+
+硬校验：FAIL | 外部评审：PASS | 答案直接对比了两组规则，列出的6条稳定规则与证据中两组共有的规则一致；置信度和lift数值引用准确，差异描述与证据相符；限制说明（支持度低、轮廓系数中等偏低、样本规模）均有证据支撑，未夸大结论。
+耗时：11.925s
+
+
+######## repeat 7 ########
+R06 | 单 Agent
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[单 Agent] 工具调用：association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; cluster_profiles({}) -> success
+
+证据：
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【cluster_profiles】
+K-Means 分群结果：K=2，轮廓系数=0.4077
+K 扫描范围 2~8，2 为轮廓系数最高点
+cluster_name  user_count  user_ratio  avg_ratings  avg_active_years  avg_rating
+        轻度用户         532       0.872      106.867             1.070       3.669
+        重度用户          78       0.128      563.885             5.564       3.579
+
+最终回答：
+结论：两组共享“Romance→Comedy/Drama”和“Adventure→Action”等核心规则，但重度用户规则更“纯”（置信度常达 1.0），轻度用户规则更分散、lift 更高。
+
+差异：
+- 重度用户（78 人，人均 563.9 条评分）：Romance→Comedy 置信度 1.0000（lift 1.6250），Drama+Romance→Comedy 也是 1.0000；Crime→Drama 1.0000。规则少而集中，几乎无例外。
+- 轻度用户（532 人，人均 106.9 条）：同类规则置信度较低（Romance→Comedy 0.8105），但 lift 更高（1.5262）；Sci-Fi→Action lift 1.7428 明显高于重度组的 1.3265，且多出 Crime+Thriller→Drama、Comedy+Thriller→Drama 等组合。
+
+跨组稳定规则：Romance→Comedy、Romance→Comedy+Drama、Drama+Romance→Comedy、Adventure→Action、Crime→Drama、Sci-Fi→Action 在两组均出现。
+
+硬校验：FAIL | 外部评审：PASS | 答案直接对比两组规则，数值与证据一致（如重度 Romance→Comedy 置信度1.0、轻度0.8105；Sci-Fi→Action lift 1.7428 vs 1.3265），跨组稳定规则均确实在两组出现。'重度更纯、轻度更分散'的概括有数据支撑，未夸大或遗漏关键限制。
+耗时：2.504s
+
+
+######## repeat 7 ########
+R06 | 多 Agent 串行
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[Planner] 路由=['mining', 'sql'] | 需要按重度/轻度用户分组挖掘关联规则并比较跨组稳定性，需数据挖掘结论及数据库查询支撑分组统计。
+[挖掘Agent] 工具调用: association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; cluster_profiles({}) -> success
+[挖掘Agent] 证据: ## 重度 vs 轻度用户关联规则差异
+
+**分群背景**：K=2（轮廓系数 0.4077），轻度用户 532 人（87.2%，人均 106.9 条评分、活跃 1.07 年、均分 3.669）；重度用户 78 人（12.8%，人均 563.9 条评分、活跃 5.56 年、均分 3.579）。
+
+### 一、跨组稳定规则（核心骨架）
+
+| 规则 | 重度 support / conf / lift ...
+[检索Agent] 工具调用: run_sql({"sql": "SELECT COUNT(*) AS n_users, MIN(cnt) AS min_r, MAX(cnt) AS max_r, AVG(cnt) AS avg_r, MEDIAN(cnt) AS med_r FROM (SELECT userId, COUNT(*) AS cn) -> success; run_sql({"sql": "SELECT quantile_cont(cnt, [0.1,0.25,0.5,0.75,0.9]) AS qs FROM (SELECT userId, COUNT(*) AS cnt FROM ratings GROUP BY userId)"}) -> error; run_sql({"sql": "SELECT q, quantile_cont(cnt, q) AS val FROM (SELECT userId, COUNT(*) AS cnt FROM ratings GROUP BY userId) t, (SELECT unnest([0.1,0.25,0.5,0.7) -> error; run_sql({"sql": "SELECT\n quantile_cont(cnt,0.1) AS p10, quantile_cont(cnt,0.25) AS p25, quantile_cont(cnt,0.5) AS p50,\n quantile_cont(cnt,0.75) AS p75, quan) -> success; run_sql({"sql": "WITH u AS (SELECT userId, COUNT(*) AS cnt FROM ratings GROUP BY userId)\nSELECT CASE WHEN cnt>=168 THEN 'heavy' ELSE 'light' END AS grp, COUN) -> success
+[检索Agent] 证据: （工具轮次用尽）完整查询结果共 2 行；当前展示 2 行；排序依据：未指定 ORDER BY
+  grp  n_users  n_ratings
+light      456    28715.0
+heavy      154    72121.0...
+[Synthesizer] 草稿: **结论：两组规则高度相似，核心路径稳定；差异主要在置信度与个别规则。**
+
+重度用户组（[F008] 人）与轻度用户组（[F003] 人）共享多条规则：Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy、Sci-Fi→Action、Ad...
+[Critic·硬校验] PASS | 6 个数字通过出处/关系/格式检查，Fact=29
+[Critic] REVISE | 主要问题：1) 结论'轻度用户更依赖类型组合'缺乏证据支持——证据只显示 Sci-Fi→Action 在轻度组置信度更高（0.8140 vs 0.7143），而 Romance→Comedy 在重度组更高（1.0000 vs 0.8105），方向相反，不能推出整体性结论，应删除或改为中性描述。2) '更偏向剧情收束'同样属于过度解读：轻度组确有 4 条以 Drama 为后件的规则，但重度组也有 Crime→Drama、Comedy+Crime→Drama，且证据未提供规则全貌（仅 Top-10），无法断言组间偏好差异，应弱化为'轻度组 Top-10 中出现更多以 Drama 为后件的规则'。3) 遗漏关键限制：两组规则均只展示 Top-10，且支持度普遍很低（0.06~0.20），规则稳定性判断应注明支持度门槛与样本量差异（78 vs 532）对置信度估计的影响。4) 人数口径矛盾未充分说明：cluster_profiles 为 78/532，而 SQL 分组为 154/456，回答仅一句'口径不同'，应明确指出规则挖掘所用分组与 cluster_profiles 的对应关系不明，结论中'重度用户组（78 人）'的标注可能与规则来源不一致。5) 共享规则列表准确，可保留；建议补充各组规则的支持度对比以支撑'核心路径稳定'的判断。
+[Synthesizer] 草稿: **结论**：两组规则方向不完全一致，跨组稳定的是 Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama 等核心路径；但规则仅展示 Top-10、支持度普遍偏低（0.06~0.20），且分组人数口径存疑，差异不宜过度解读。
+
+**差异**...
+[Critic·硬校验] FAIL | 无证据数字: 0.06, 0.20, 4
+[Critic] FAIL | 已达修订上限，草稿仅留诊断记录
+
+证据：
+【mining】
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【cluster_profiles】
+K-Means 分群结果：K=2，轮廓系数=0.4077
+K 扫描范围 2~8，2 为轮廓系数最高点
+cluster_name  user_count  user_ratio  avg_ratings  avg_active_years  avg_rating
+        轻度用户         532       0.872      106.867             1.070       3.669
+        重度用户          78       0.128      563.885             5.564       3.579
+
+【sql】
+【run_sql】
+完整查询结果共 1 行；当前展示 1 行；排序依据：未指定 ORDER BY
+ n_users  min_r  max_r      avg_r  med_r
+     610     20   2698 165.304918   70.5
+
+【run_sql】
+完整查询结果共 1 行；当前展示 1 行；排序依据：未指定 ORDER BY
+ p10  p25  p50   p75   p90
+24.0 35.0 70.5 168.0 400.3
+
+【run_sql】
+完整查询结果共 2 行；当前展示 2 行；排序依据：未指定 ORDER BY
+  grp  n_users  n_ratings
+light      456    28715.0
+heavy      154    72121.0
+
+最终回答：
+结论：两组规则方向不完全一致，跨组稳定的是 Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama 等核心路径；但规则仅展示 Top-10、支持度普遍偏低（0.06~0.20），且分组人数口径存疑，差异不宜过度解读。
+
+差异：Sci-Fi→Action 轻度组置信度更高（0.8140 vs 0.7143），Romance→Comedy 则重度组更高（1.0000 vs 0.8105），方向相反，无法得出整体性偏好结论。轻度组 Top-10 中以 Drama 为后件的规则更多（4 条），重度组仅 2 条，但受 Top-10 截断限制，不能断言组间偏好差异。
+
+稳定规则：Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama 在两组均出现，支持度相近（如 Romance→Comedy 重度 0.1538、轻度 0.1450），可视为核心路径。
+
+限制：规则挖掘分组与 cluster_profiles（重度 78 人、轻度 532 人）的对应关系不明；SQL 分组为 154/456 人，样本量差异会影响置信度估计。
+
+硬校验：FAIL | 外部评审：PASS | 答案直接回应差异与跨组稳定规则，结论与证据一致：所列稳定规则均在两组Top-10出现，支持度相近；差异描述（Sci-Fi→Action轻度置信度更高、Romance→Comedy重度更高）准确；并恰当指出Top-10截断、支持度偏低及分组人数口径不一致等限制，未过度推断。
+耗时：17.133s
+
+
+######## repeat 7 ########
+R06 | 多 Agent 并行
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[Planner] 路由=['mining', 'sql'] | 需要按用户活跃度分群并挖掘关联规则差异，同时查询评分数据以支撑分群与规则计算。
+[挖掘Agent] 工具调用: association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; cluster_profiles({}) -> success
+[挖掘Agent] 证据: ## 重度 vs 轻度用户关联规则差异
+
+**分群背景**（K=2，轮廓系数 0.4077）：重度用户仅 78 人（12.8%），人均评分 563.9 条、活跃 5.56 年；轻度用户 532 人（87.2%），人均 106.9 条、活跃 1.07 年。两组平均评分接近（3.58 vs 3.67）。
+
+### 一、跨组稳定的规则（核心骨架）
+
+| 规则 | 重度 support / conf / ...
+[检索Agent] 工具调用: run_sql({"sql": "SELECT COUNT(*) AS n_users, MIN(cnt) AS min_r, MAX(cnt) AS max_r, AVG(cnt) AS avg_r, MEDIAN(cnt) AS med_r FROM (SELECT userId, COUNT(*) AS cn) -> success; run_sql({"sql": "SELECT quantile_cont(cnt, [0.1,0.25,0.5,0.75,0.9]) AS qs FROM (SELECT userId, COUNT(*) AS cnt FROM ratings GROUP BY userId)"}) -> error; run_sql({"sql": "SELECT q, quantile_cont(cnt, q) AS val FROM (SELECT userId, COUNT(*) AS cnt FROM ratings GROUP BY userId) t, (SELECT unnest([0.1,0.25,0.5,0.7) -> error; run_sql({"sql": "SELECT\n quantile_cont(cnt,0.1) AS p10, quantile_cont(cnt,0.25) AS p25, quantile_cont(cnt,0.5) AS p50,\n quantile_cont(cnt,0.75) AS p75, quan) -> success; run_sql({"sql": "WITH u AS (SELECT userId, COUNT(*) AS cnt FROM ratings GROUP BY userId)\nSELECT CASE WHEN cnt>=168 THEN 'heavy' ELSE 'light' END AS grp, COUN) -> success
+[检索Agent] 证据: （工具轮次用尽）完整查询结果共 2 行；当前展示 2 行；排序依据：未指定 ORDER BY
+  grp  users  ratings      avg_r
+heavy    154  72121.0 468.318182
+light    456  28715.0  62.971491...
+[Synthesizer] 草稿: 两组规则都以 Romance→Comedy(+Drama) 和 Sci-Fi→Action 为主，但重度用户置信度更高、规则更集中；轻度用户规则更分散，且多出 Romance→Drama、Crime+Thriller→Drama 等。跨组稳定的是 Romance→Comedy+Drama、Sci-F...
+[Critic·硬校验] FAIL | F002 被错配给「重度用户」，实际属于「K-Means」；F026 被错配给「重度用户」，实际属于「结果第1行」；F029 被错配给「轻度用户」，实际属于「结果第2行」；数字 154 被错配给「重度用户」；数字 456 被错配给「轻度用户」
+[Critic] REVISE | 硬校验未通过，回流修订
+[Synthesizer] 草稿: 两组规则都以 Romance→Comedy 类为核心，但重度用户置信度更高、规则更集中；轻度用户规则更分散，Sci‑Fi→Action 的 lift 明显更强。跨组稳定的是 Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy、Sci‑Fi...
+[Critic·硬校验] PASS | 10 个数字通过出处/关系/格式检查，Fact=31
+[Critic] REVISE | 主要问题：1) 结论'重度用户置信度更高'不成立——Romance→Comedy 重度 1.0000 vs 轻度 0.8105 确实更高，但 Romance→Comedy+Drama 重度 0.9167 vs 轻度 0.7579 也更高，然而 Sci-Fi→Action 轻度 0.8140 高于重度 0.7143，Adventure→Action 轻度 0.6228 低于重度 0.6364 基本持平，Crime→Drama 轻度 0.9286 低于重度 1.0000。整体看重度在 Romance 相关规则上置信度更高，但并非所有规则，应限定表述。2) '规则更集中'缺乏证据支撑，两组各展示 10 条规则，无法判断集中度，应删除或补充依据。3) 'Sci-Fi→Action 的 lift 明显更强'——轻度 1.7428 vs 重度 1.3265，确实更强，但需注意该规则 support 很低（约 0.06），应提示低支持度限制。4) 跨组稳定规则列举正确（6 条均两组出现），但未说明稳定性判据（如 lift>1 且方向一致），建议补充。5) 分群人数与 SQL 口径区分正确，值得保留。6) 未提及聚类轮廓系数 0.4077 属中等偏低、K=2 结构不算强，应作为限制说明。7) 未回答'差异'的量化对比（如 lift 排序差异：重度最高 lift 为 Romance→Comedy+Drama 1.7875，轻度最高为同规则 1.7966，几乎一致），可补充。建议：修正'置信度更高'为'Romance 相关规则置信度更高'；删除无依据的'更集中'；补充低 support 与轮廓系数限制；明确稳定规则判据。
+[Critic] FAIL | 已达修订上限，草稿仅留诊断记录
+
+证据：
+【mining】
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【cluster_profiles】
+K-Means 分群结果：K=2，轮廓系数=0.4077
+K 扫描范围 2~8，2 为轮廓系数最高点
+cluster_name  user_count  user_ratio  avg_ratings  avg_active_years  avg_rating
+        轻度用户         532       0.872      106.867             1.070       3.669
+        重度用户          78       0.128      563.885             5.564       3.579
+
+【sql】
+【run_sql】
+完整查询结果共 1 行；当前展示 1 行；排序依据：未指定 ORDER BY
+ n_users  min_r  max_r      avg_r  med_r
+     610     20   2698 165.304918   70.5
+
+【run_sql】
+完整查询结果共 1 行；当前展示 1 行；排序依据：未指定 ORDER BY
+ p10  p25  p50   p75   p90
+24.0 35.0 70.5 168.0 400.3
+
+【run_sql】
+完整查询结果共 2 行；当前展示 2 行；排序依据：未指定 ORDER BY
+  grp  users  ratings      avg_r
+heavy    154  72121.0 468.318182
+light    456  28715.0  62.971491
+
+最终回答：
+两组规则都以 Romance→Comedy 类为核心，但重度用户置信度更高、规则更集中；轻度用户规则更分散，Sci‑Fi→Action 的 lift 明显更强。跨组稳定的是 Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy、Sci‑Fi→Action、Adventure→Action、Crime→Drama。
+
+分群上，轻度用户 532 人、占比 87.2%，重度用户 78 人、占比 12.8%；K-Means 最优 K=2、轮廓系数 0.4077。注意 SQL 分组口径与聚类不同：结果第1行 154 人、结果第2行 456 人，不能与聚类人数混用。
+
+硬校验：PASS | 外部评审：PASS | 答案直接对比了两组规则差异（重度置信度更高、规则更集中；轻度更分散、Sci-Fi→Action lift更强），列出的跨组稳定规则均同时出现在两组证据中，且正确指出SQL分组人数与聚类人数口径不同，未夸大结论。
+耗时：12.357s
+
+
+######## repeat 8 ########
+R06 | 单 Agent
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[单 Agent] 工具调用：association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; retrieve_knowledge({"query": "Apriori 关联规则 重度用户 轻度用户 差异 稳定规则", "top_k": 3}) -> success
+
+证据：
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【retrieve_knowledge】
+【文档 apriori_result · Apriori 关联规则结果】
+Apriori 关联规则结果。W4 Apriori 关联规则：min_support=0.05 时挖出 13 条规则（lift>1 且 confidence>=0.5）。典型规则：Romance 推出 Comedy+Drama，confidence 0.78 lift 1.79，83 人支撑；Sci-Fi 推出 Action，confidence 0.80 lift 1.68，40 人支撑；Crime 推出 Drama，confidence 0.94 lift 1.21。情感片三角与科幻动作绑定是主要模式。
+
+【文档 apriori_method · Apriori 事务构建方法】
+Apriori 事务构建方法。关联规则事务定义：每位用户取评分>=4 的电影中类型出现次数最多的前 3 个类型，形成偏好签名，共 609 条事务（1 名用户 userId=442 最高评分仅 2.5 被过滤）。v1 定义「看过至少 1 部 4 分片的所有类型」失败：人均 80 部 4 分片几乎覆盖全部类型，主流类型 support 超 95% 无区分度。改为 top-3 偏好后 support 梯度拉开。规则按 lift 而非 confidence 排序：lift=confidence/P(B)，大于 1 才是正相关，高 confidence 可能只是后项本身热门。支撑人数=support 乘以事务数 609。
+
+【文档 group_rules · 分组关联规则对比结果】
+分组关联规则对比结果。W4 按 K-Means 分群分组挖掘：重度组 78 人 13 条规则，轻度组 531 人 13 条规则。重度用户信号更纯：Romance 推出 Comedy 在重度组 confidence=1.000，轻度组 0.811。组独有规则：重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。核心规则（情感三角、Sci-Fi 推 Action）跨组稳定，验证全量规则稳健性。注意重度组每条规则仅 5-14 人支撑，属小样本探索性发现。
+
+最终回答：
+结论：核心规则跨组稳定，差异主要在信号纯度与组独有规则族。
+
+- 跨组稳定：Romance→Comedy+Drama（重度 lift 1.79、轻度 1.80）、Romance→Comedy（重度 1.63、轻度 1.53）、Sci-Fi→Action（重度 1.33、轻度 1.74）、Adventure→Action、Crime→Drama 均两组出现，验证全量规则稳健。
+- 重度更纯：Romance→Comedy 置信度 1.000（轻度 0.811），Drama+Romance→Comedy 也达 1.000。
+- 组独有：重度有 Crime 复合规则族（Crime+Comedy→Drama 等）；轻度有 Thriller 系规则（Crime+Thriller→Drama、Comedy+Thriller→Drama）。
+- 注意：重度组仅 78 人、每条规则 5–14 人支撑，属小样本探索性发现。
+
+硬校验：FAIL | 外部评审：PASS | 答案直接对比两组规则，所列稳定规则、置信度差异、组独有规则族及小样本限制均与证据一致，无夸大或遗漏关键限制。
+耗时：2.724s
+
+
+######## repeat 8 ########
+R06 | 多 Agent 串行
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[Planner] 路由=['mining', 'rag'] | 需要数据挖掘的用户分群与关联规则对比结论，以及关联规则/支持度置信度等概念解释
+[挖掘Agent] 工具调用: association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; cluster_profiles({}) -> success
+[挖掘Agent] 证据: ## 重度 vs 轻度用户关联规则差异
+
+**分群背景**（K=2，轮廓系数 0.4077）：重度用户仅 78 人（12.8%），人均评分 563.9 条、活跃 5.56 年；轻度用户 532 人（87.2%），人均 106.9 条、活跃 1.07 年。两组平均评分接近（3.58 vs 3.67）。
+
+### 一、跨组稳定的规则（核心骨架）
+
+| 规则 | 重度 lift / conf | 轻度 ...
+[RAG Agent] 子查询: 重度用户关联规则特征 | 轻度用户关联规则特征 | 跨组稳定关联规则
+[RAG Agent] 检索后端: hybrid | 召回文档: group_rules, apriori_method, apriori_result（得分 0.4389/0.3748/0.3416）
+[RAG Agent] 证据: **分组差异：**
+
+- **样本与规则数**：W4 按 K-Means 分群挖掘，重度组 78 人、13 条规则；轻度组 531 人、13 条规则。
+- **信号纯度**：重度用户信号更纯。例如 Romance 推出 Comedy 在重度组 confidence=1.000，轻度组为 0.811。
+- **组独有规则**：重度组有 Crime 复合规则族；轻度组有 Thriller 系规则。
+
+...
+[Synthesizer] 草稿: **结论**：两组规则结构相近，但重度组信号更纯、规则更集中；情感片三角与 Sci-Fi→Action 跨组稳定。
+
+**差异**：重度组 Romance→Comedy 的 confidence 为 1.000，轻度组为 0.811；重度组独有 Crime 复合规则族，轻度组独有 Thriller ...
+[Critic·硬校验] PASS | 10 个数字通过出处/关系/格式检查，Fact=12
+[Critic] PASS | 结论与证据一致：重度组 Romance→Comedy confidence=1.000 vs 轻度 0.811 准确；Crime 复合规则族（重度独有）与 Thriller 系规则（轻度独有）与 rag 文档一致；跨组稳定规则列表逐条核对两组规则表均存在（Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama），无夸大。样本数字 532/78、87.2%/12.8%、轮廓系数 0.41 与 cluster_profiles 一致。小样本限制（5–14 人支撑）已如实标注。轻微可改进：轻度组用户数在 cluster_profiles 为 532、rag 文档为 531，回答采用 532 与主表一致，可接受；另可补充说明规则按 lift 排序及 top-3 偏好签名的事务定义，但不影响结论正确性。
+[Critic] 审查通过，输出最终答案
+
+证据：
+【mining】
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【cluster_profiles】
+K-Means 分群结果：K=2，轮廓系数=0.4077
+K 扫描范围 2~8，2 为轮廓系数最高点
+cluster_name  user_count  user_ratio  avg_ratings  avg_active_years  avg_rating
+        轻度用户         532       0.872      106.867             1.070       3.669
+        重度用户          78       0.128      563.885             5.564       3.579
+
+【rag】
+【文档 group_rules · 分组关联规则对比结果】
+分组关联规则对比结果。W4 按 K-Means 分群分组挖掘：重度组 78 人 13 条规则，轻度组 531 人 13 条规则。重度用户信号更纯：Romance 推出 Comedy 在重度组 confidence=1.000，轻度组 0.811。组独有规则：重度组有 Crime 复合规则族，轻度组有 Thriller 系规则。核心规则（情感三角、Sci-Fi 推 Action）跨组稳定，验证全量规则稳健性。注意重度组每条规则仅 5-14 人支撑，属小样本探索性发现。
+
+【文档 apriori_method · Apriori 事务构建方法】
+Apriori 事务构建方法。关联规则事务定义：每位用户取评分>=4 的电影中类型出现次数最多的前 3 个类型，形成偏好签名，共 609 条事务（1 名用户 userId=442 最高评分仅 2.5 被过滤）。v1 定义「看过至少 1 部 4 分片的所有类型」失败：人均 80 部 4 分片几乎覆盖全部类型，主流类型 support 超 95% 无区分度。改为 top-3 偏好后 support 梯度拉开。规则按 lift 而非 confidence 排序：lift=confidence/P(B)，大于 1 才是正相关，高 confidence 可能只是后项本身热门。支撑人数=support 乘以事务数 609。
+
+【文档 apriori_result · Apriori 关联规则结果】
+Apriori 关联规则结果。W4 Apriori 关联规则：min_support=0.05 时挖出 13 条规则（lift>1 且 confidence>=0.5）。典型规则：Romance 推出 Comedy+Drama，confidence 0.78 lift 1.79，83 人支撑；Sci-Fi 推出 Action，confidence 0.80 lift 1.68，40 人支撑；Crime 推出 Drama，confidence 0.94 lift 1.21。情感片三角与科幻动作绑定是主要模式。
+
+最终回答：
+结论：两组规则结构相近，但重度组信号更纯、规则更集中；情感片三角与 Sci-Fi→Action 跨组稳定。
+
+差异：重度组 Romance→Comedy 的 confidence 为 1.000，轻度组为 0.811；重度组独有 Crime 复合规则族，轻度组独有 Thriller 系规则。重度组每条规则仅 5–14 人支撑，属小样本探索性发现。
+
+稳定规则：Romance→Comedy+Drama、Drama+Romance→Comedy、Romance→Comedy、Sci-Fi→Action、Adventure→Action、Crime→Drama 在两组均出现。
+
+样本：K-Means 取 K=2（轮廓系数 0.41），轻度用户 532 人（占比 87.2%），重度用户 78 人（占比 12.8%）。
+
+硬校验：PASS | 外部评审：PASS | 答案直接回应差异与跨组稳定规则，数值与证据一致（Romance→Comedy 重度1.000/轻度0.811；Crime复合族与Thriller系独有；小样本5–14人限制已注明）。稳定规则列表均可在两组规则表中找到。样本描述与cluster_profiles一致。轻微瑕疵：未提及轻度组人数在rag文档中为531与cluster_profiles的532存在1人差异，但不影响结论。
+耗时：12.105s
+
+
+######## repeat 8 ########
+R06 | 多 Agent 并行
+问：重度用户和轻度用户的关联规则有什么差异？哪些规则跨组稳定？
+[Planner] 路由=['mining', 'sql'] | 需要按重度/轻度用户分组挖掘关联规则并比较跨组稳定性，需数据挖掘结论及数据库查询支撑分组统计。
+[挖掘Agent] 工具调用: association_rules({"group": "heavy", "top_n": 10}) -> success; association_rules({"group": "light", "top_n": 10}) -> success; cluster_profiles({}) -> success
+[挖掘Agent] 证据: ## 重度 vs 轻度用户关联规则差异分析
+
+**分群背景**（K=2，轮廓系数 0.4077）：重度用户仅 78 人（12.8%），但人均评分 563.9 条、活跃 5.56 年；轻度用户 532 人（87.2%），人均仅 106.9 条、活跃 1.07 年。两组平均评分接近（3.58 vs 3.67）。
+
+### 一、跨组稳定的规则（核心共性）
+
+| 规则 | 重度 support / con...
+[检索Agent] 工具调用: run_sql({"sql": "SELECT userId, COUNT(*) AS n FROM ratings GROUP BY userId ORDER BY n DESC LIMIT 5"}) -> success; run_sql({"sql": "SELECT MIN(n) AS min_n, MAX(n) AS max_n, AVG(n) AS avg_n, MEDIAN(n) AS med_n, COUNT(*) AS users FROM (SELECT userId, COUNT(*) AS n FROM ratin) -> success; run_sql({"sql": "SELECT CASE WHEN n >= 300 THEN 'heavy' ELSE 'light' END AS grp, COUNT(*) AS users, SUM(n) AS ratings, MIN(n) AS min_n, MAX(n) AS max_n FROM () -> success; run_sql({"sql": "SELECT COUNT(*) AS n_pairs FROM (SELECT userId, COUNT(*) AS n FROM ratings GROUP BY userId) WHERE n >= 300"}) -> success; run_sql({"sql": "WITH g AS (SELECT userId, CASE WHEN COUNT(*)>=300 THEN 'heavy' ELSE 'light' END AS grp FROM ratings GROUP BY userId),\nu AS (SELECT r.userId,) -> success; run_sql({"sql": "WITH g AS (SELECT userId, CASE WHEN COUNT(*)>=300 THEN 'heavy' ELSE 'light' END AS grp FROM ratings GROUP BY userId),\nu AS (SELECT r.userId,) -> success; run_sql({"sql": "WITH g AS (SELECT userId, CASE WHEN COUNT(*)>=300 THEN 'heavy' ELSE 'light' END AS grp FROM ratings GROUP BY userId),\nu AS (SELECT r.userId,) -> success
+[检索Agent] 证据: （工具轮次用尽）完整查询结果共 1 行；当前展示 1 行；排序依据：grp, lift DESC
+  grp           x         y  both_users  support   conf  lift
+light Documentary Film-Noir          83   0.1578 0.5461 1.784...
+[Synthesizer] 草稿: **结论：轻度用户规则区分度更高，重度用户规则几乎无区分度；跨组稳定的是 Romance→Comedy、Drama+Romance→Comedy、Sci-Fi→Action、Adventure→Action 等类型搭配。**
+
+差异方面：轻度用户共 [F128] 条规则，平均 lift [F131:...
+[Critic·硬校验] FAIL | F128 被错配给「轻度用户」，实际属于「结果第1行」；F131 被错配给「轻度用户」，实际属于「结果第1行」；F131 指标错配：语境是「lift」，实际是「avg_lift」；F132 被错配给「轻度用户」，实际属于「结果第1行」；F132 指标错配：语境是「lift」，实际是「max_lift」；F134 被错配给「重度用户」，实际属于「结果第2行」；F137 被错配给「重度用户」，实际属于「结果第2行」；F137 指标错配：语境是「lift」，实际是「avg_lift」；F138 被错配给「重度用户」，实际属于「结果第2行」；F138 指标错配：语境是「lift」，实际是「max_lift」；F135 被错配给「重度用户」，实际属于「结果第2行」；F135 指标错配：语境是「lift」，实际是「lift_ge_1_3」；F144 被错配给「轻度用户」，实际属于「查询结果」；F143 被错配给「轻度用户」，实际属于「查询结果」；F143 指标错配：语境是「confidence」，实际是「conf」；数字 137 被错配给「轻度用户」；数字 171 被错配给「重度用户」
+[Critic] REVISE | 硬校验未通过，回流修订
+[Synthesizer] 草稿: **结论**：重度用户规则几乎全为 lift≈1 的“全包含”型规则，缺乏区分度；轻度用户规则强度更高、更有结构。跨组稳定的是 Romance→Comedy 与 Adventure→Action 等类型组合。
+
+**差异**：轻度用户共 [F128] 条规则，平均 lift [F131:round:...
+[Critic·硬校验] FAIL | F128 被错配给「轻度用户」，实际属于「结果第1行」；F131 被错配给「轻度用户」，实际属于「结果第1行」；F131 指标错配：语境是「lift」，实际是「avg_lift」；F132 被错配给「轻度用户」，实际属于「结果第1行」；F132 指标错配：语境是「lift」，实际是「max_lift」；F129 被错配给「轻度用户」，实际属于「结果第1行」；F129 指标错配：语境是「lift」，实际是「lift_ge_1_3」；F134 被错配给「重度用户」，实际属于「结果第2行」；F137 被错配给「重度用户」，实际属于「结果第2行」；F137 指标错配：语境是「lift」，实际是「avg_lift」；F138 被错配给「重度用户」，实际属于「结果第2行」；F138 指标错配：语境是「lift」，实际是「max_lift」；F135 被错配给「重度用户」，实际属于「结果第2行」；F135 指标错配：语境是「lift」，实际是「lift_ge_1_3」；F144 被错配给「轻度用户」，实际属于「查询结果」；F143 被错配给「轻度用户」，实际属于「查询结果」；F143 指标错配：语境是「confidence」，实际是「conf」；数字 137 被错配给「轻度用户」；数字 171 被错配给「重度用户」
+[Critic] FAIL | 已达修订上限，草稿仅留诊断记录
+
+证据：
+【mining】
+【association_rules】
+重度用户组关联规则
+  antecedents  consequents  support  confidence   lift
+      Romance Comedy+Drama   0.1410      0.9167 1.7875
+Drama+Romance       Comedy   0.1410      1.0000 1.6250
+      Romance       Comedy   0.1538      1.0000 1.6250
+       Sci-Fi       Action   0.0641      0.7143 1.3265
+        Crime Comedy+Drama   0.0769      0.6667 1.3000
+    Adventure       Action   0.1795      0.6364 1.1818
+        Crime        Drama   0.1154      1.0000 1.1642
+ Comedy+Crime        Drama   0.0769      1.0000 1.1642
+        Crime       Comedy   0.0769      0.6667 1.0833
+  Crime+Drama       Comedy   0.0769      0.6667 1.0833
+
+【association_rules】
+轻度用户组关联规则
+    antecedents  consequents  support  confidence   lift
+        Romance Comedy+Drama   0.1356      0.7579 1.7966
+         Sci-Fi       Action   0.0659      0.8140 1.7428
+  Drama+Romance       Comedy   0.1356      0.8182 1.5406
+        Romance       Comedy   0.1450      0.8105 1.5262
+      Adventure       Action   0.1959      0.6228 1.3334
+ Comedy+Romance        Drama   0.1356      0.9351 1.2290
+          Crime        Drama   0.1469      0.9286 1.2205
+ Crime+Thriller        Drama   0.0716      0.9268 1.2182
+        Romance        Drama   0.1657      0.9263 1.2175
+Comedy+Thriller        Drama   0.0810      0.8269 1.0869
+
+【cluster_profiles】
+K-Means 分群结果：K=2，轮廓系数=0.4077
+K 扫描范围 2~8，2 为轮廓系数最高点
+cluster_name  user_count  user_ratio  avg_ratings  avg_active_years  avg_rating
+        轻度用户         532       0.872      106.867             1.070       3.669
+        重度用户          78       0.128      563.885             5.564       3.579
+
+【sql】
+【run_sql】
+完整查询结果共 5 行；当前展示 5 行；排序依据：n DESC
+ userId    n
+    414 2698
+    599 2478
+    474 2108
+    448 1864
+    274 1346
+
+【run_sql】
+完整查询结果共 1 行；当前展示 1 行；排序依据：未指定 ORDER BY
+ min_n  max_n      avg_n  med_n  users
+    20   2698 165.304918   70.5    610
+
+【run_sql】
+完整查询结果共 2 行；当前展示 2 行；排序依据：未指定 ORDER BY
+  grp  users  ratings  min_n  max_n
+light    526  44537.0     20    299
+heavy     84  56299.0    300   2698
+
+【run_sql】
+完整查询结果共 1 行；当前展示 1 行；排序依据：未指定 ORDER BY
+ n_pairs
+      84
+
+【run_sql】
+完整查询结果共 308 行；当前展示 15 行；排序依据：p.grp, lift DESC；展示行数不等于总数
+  grp           x           y  both_users  n_users  support  conf_x_to_y  conf_y_to_x  lift
+heavy Documentary        IMAX          66       84   0.7857       0.9296       0.8571 1.014
+heavy   Animation Documentary          71       84   0.8452       0.8554       1.0000 1.012
+heavy   Animation        IMAX          77       84   0.9167       0.9277       1.0000 1.012
+heavy      Action         War          84       84   1.0000       1.0000       1.0000 1.000
+heavy      Action       Drama          84       84   1.0000       1.0000       1.0000 1.000
+heavy        IMAX     Musical          77       84   0.9167       1.0000       0.9167 1.000
+heavy      Action      Horror          84       84   1.0000       1.0000       1.0000 1.000
+heavy     Fantasy     Musical          84       84   1.0000       1.0000       1.0000 1.000
+heavy    Children         War          84       84   1.0000       1.0000       1.0000 1.000
+heavy    Children      Horror          84       84   1.0000       1.0000       1.0000 1.000
+heavy      Comedy         War          84       84   1.0000       1.0000       1.0000 1.000
+heavy   Adventure    Children          84       84   1.0000       1.0000       1.0000 1.000
+heavy   Adventure      Comedy          84       84   1.0000       1.0000       1.0000 1.000
+heavy   Adventure     Musical          84       84   1.0000       1.0000       1.0000 1.000
+heavy      Comedy      Horror          84       84   1.0000       1.0000       1.0000 1.000
+
+【run_sql】
+完整查询结果共 2 行；当前展示 2 行；排序依据：未指定 ORDER BY
+  grp  n_rules  lift_ge_1_3  lift_le_0_7  avg_lift  max_lift  min_lift
+light      137            1            0     1.015     1.784     0.995
+heavy      171            0            0     1.000     1.014     0.986
+
+【run_sql】
+完整查询结果共 1 行；当前展示 1 行；排序依据：grp, lift DESC
+  grp           x         y  both_users  support   conf  lift
+light Documentary Film-Noir          83   0.1578 0.5461 1.784
+
+最终回答：
+结论：重度用户规则几乎全为 lift≈1 的“全包含”型规则，缺乏区分度；轻度用户规则强度更高、更有结构。跨组稳定的是 Romance→Comedy 与 Adventure→Action 等类型组合。
+
+差异：轻度用户共 137 条规则，平均 lift 1.02、最高 1.78，有 1 条 lift≥1.3；重度用户共 171 条规则，平均 lift 1.00、最高 1.01，lift≥1.3 为 0 条。重度组大量规则 support=1、lift=1（如 Action→War、Action→Drama），属普遍共现而非强关联。
+
+跨组稳定：Romance→Comedy（重度 lift 1.6250、轻度 1.5262）、Adventure→Action（1.1818/1.3334）、Sci-Fi→Action（1.3265/1.7428）方向一致。轻度组最强为 Documentary→Film-Noir，lift 1.78、置信度 0.55。
+
+硬校验：FAIL | 外部评审：PASS | 答案直接对比了两组规则的数量、lift 分布与典型规则，结论与证据一致：重度组规则 lift 接近 1、缺乏区分度，轻度组有更高 lift 规则；跨组稳定项 Romance→Comedy、Adventure→Action、Sci-Fi→Action 的 lift 数值均与证据吻合，并正确指出轻度组最强规则 Documentary→Film-Noir。未发现夸大或遗漏关键限制。
+耗时：15.840s
