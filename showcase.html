@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MovieLens · 电影数据研究室</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f7f6f1;color:#242923;font:16px/1.65 Geist,"Microsoft YaHei",sans-serif}
+header,main{max-width:1040px;margin:auto;padding:0 5%}header{display:flex;align-items:center;justify-content:space-between;min-height:80px;border-bottom:1px solid #cbcfc2}
+.brand{font: bold 24px Georgia,serif;letter-spacing:-1px}.brand:before{content:"";display:inline-block;width:20px;height:16px;border:4px double #535e4e;margin-right:9px;vertical-align:-1px}
+nav{display:flex;gap:18px}a{color:#565f54;text-decoration:none}a[aria-current]{font-weight:bold;color:#273824;border-bottom:2px solid #53684e}
+h1{font:600 clamp(36px,6vw,68px)/1.2 "Songti SC",SimSun,serif;letter-spacing:-2px;margin:48px 0 8px}
+.intro{margin:0 0 30px;color:#586053}article{background:#fff;border:1px solid #dedfd8;border-top:4px solid #62755a;border-radius:5px;padding:clamp(18px,4vw,40px);margin-bottom:50px}
+label,h3,dt,small{font-size:14px}label{display:block;font-weight:700;margin-bottom:8px}select,textarea,button{font:inherit;border-radius:4px;padding:8px 13px}
+select,textarea{border:1px solid #bec4b8;background:#fbfcf9;max-width:100%}textarea{display:block;width:100%;height:110px;margin-bottom:12px}
+button{background:#2a3329;color:white;border:0;cursor:pointer}button:hover{background:#495846}button:disabled{opacity:.65}form{margin-bottom:22px}
+h2{font-size:clamp(21px,3vw,30px);line-height:1.45}dl{background:#eff2ea;display:grid;grid-template-columns:repeat(3,1fr);padding:16px;gap:10px}dt,small{color:#596450}dd{margin:2px 0;font:600 19px monospace}
+pre{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere}details{border-top:1px solid #ddd;padding:14px 0}summary{cursor:pointer;font-weight:600}
+@media(max-width:500px){header{min-height:62px}.brand{font-size:20px}nav{gap:10px;font-size:14px}h1{margin-top:32px}select{margin-bottom:8px}dd{font-size:16px}}
+</style></head><body><header><span class="brand">MovieLens</span><nav aria-label="展示模式"><a href="/" {{replay_current}}>实验回放</a><a href="/ask" {{live_current}}>实时问答</a></nav></header>
+<main><h1>电影数据研究室</h1><p class="intro">查询电影评分、比较用户偏好，查看每次回答的证据与审查结果。</p><article>{{content}}</article></main></body></html>

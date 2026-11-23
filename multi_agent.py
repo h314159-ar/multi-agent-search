@@ -117,8 +117,14 @@ def _sql_facts(df, sql: str) -> list[dict]:
             # 与工具文本中的 pandas 展示精度一致，避免 Fact 默认渲染出超长浮点尾数。
             display = (format(float(value), ".6f").rstrip("0").rstrip(".")
                        if isinstance(value, float) else str(value))
+            unit = "score" if metric == "avg_rating" else "count"
+            if re.search(r"(?:^|_)(pct|percent|percentage)(?:_|$)", column, re.I):
+                unit = "percent"
+                display += "%"
+            elif re.search(r"(?:^|_)(ratio|proportion)(?:_|$)", column, re.I) or metric in {"support", "confidence"}:
+                unit = "ratio"
             facts.append({"subject": title, "metric": metric, "value": value,
-                          "display": display, "unit": "score" if metric == "avg_rating" else "count",
+                          "display": display, "unit": unit,
                           "aliases": aliases, "source_location": f"row {row_index}, column {column}"})
     return facts
 
@@ -372,7 +378,8 @@ async def synthesizer(state: State) -> dict:
                                 for k, v in state["tool_evidences"].items() if v)
     catalog = fact_catalog_text(state["tool_records"])
     critique = state.get("critique", "")
-    revise_note = (f"\n\nCritic 上一轮审查意见（必须逐条修正）：\n{critique}"
+    revise_note = (f"\n\n上一版草稿：\n{state.get('draft', '')}\n审查意见：\n{critique}"
+                   "\n只改有问题的陈述。审查意见不提供事实证据；若建议的数字没有原始出处，删除对应陈述。"
                    if critique and state.get("verdict") == "REVISE" else "")
     resp = await llm.ainvoke([SystemMessage(content=(
         "你是 Synthesizer，负责把原始工具证据综合成中文回答。"
@@ -421,7 +428,10 @@ async def critic(state: State) -> dict:
     if not hard_ok:
         comments = ("程序硬校验未通过：" + problem_text +
                     "。请按原始证据修正；舍入或百分比必须使用 Fact 声明式引用。")
-        if n < 1:
+        first_numeric_failure_after_review = (
+            n == 1 and state.get("verdict") == "REVISE" and state.get("hard_check") == "PASS"
+        )
+        if n < 1 or first_numeric_failure_after_review:
             return {"verdict": "REVISE", "critique": comments,
                     "hard_check": "FAIL: " + problem_text,
                     "rendered_draft": rendered, "revision_count": n + 1,

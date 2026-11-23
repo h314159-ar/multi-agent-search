@@ -92,6 +92,38 @@ class TrustLayerTests(unittest.TestCase):
         # 已百分化的 Fact 直接引用渲染原值，视为合法。
         self.assertTrue(audit_answer("4.0分占比 [F001]。", "4.0分 26.6", already_percent)["ok"])
 
+    def test_movie_decimal_swap(self):
+        result = ma.run_sql_result("SELECT * FROM (VALUES ('Alpha', 4.2::DOUBLE), "
+                                   "('Beta', 3.6::DOUBLE)) AS t(title, avg_rating)")
+        for answer, expected in [("Alpha 4.2；Beta 3.6", True),
+                                 ("Alpha 3.6；Beta 4.2", False),
+                                 ("Alpha：3.6；Beta：4.2", False)]:
+            with self.subTest(answer=answer):
+                self.assertEqual(audit_answer(answer, result.text, [result.to_record()])["ok"], expected)
+
+    def test_small_percent_and_ratio(self):
+        for column, value in [("pct", 0.5), ("ratio", 0.005)]:
+            result = ma.run_sql_result(f"SELECT {value}::DOUBLE AS {column}")
+            records = [result.to_record()]
+            reference = "[F002]" if column == "pct" else "[F002:percent:1]"
+            audit = audit_answer(reference, result.text, records)
+            self.assertTrue(audit["ok"], audit)
+            self.assertEqual(audit["rendered_answer"], "0.5%")
+            self.assertFalse(audit_answer("占比 50%", result.text, records)["ok"])
+            if column == "pct":
+                self.assertFalse(audit_answer("[F002:percent:1]", result.text, records)["ok"])
+
+    def test_semantic_revision_can_repair_new_unsupported_percentage_once(self):
+        state = ma.initial_state("数据集的基本特征")
+        state.update(routes=["mining"], tool_records=[self.cluster_record],
+                     tool_evidences={"mining": self.cluster_evidence},
+                     draft="低分占 18.92%", revision_count=1, hard_check="PASS",
+                     verdict="REVISE")
+        update = asyncio.run(ma.critic(state))
+        self.assertEqual(update["verdict"], "REVISE")
+        state.update(update)
+        self.assertEqual(asyncio.run(ma.critic(state))["verdict"], "FAIL")
+
     def test_duplicate_number_next_to_fact_ref(self):
         records = [{
             "tool_name": "mock", "status": "success",

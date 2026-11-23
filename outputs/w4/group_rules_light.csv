@@ -1,0 +1,14 @@
+﻿antecedents,consequents,support,confidence,lift
+Romance,Comedy+Drama,0.1356,0.7579,1.7966
+Sci-Fi,Action,0.0659,0.814,1.7428
+Drama+Romance,Comedy,0.1356,0.8182,1.5406
+Romance,Comedy,0.145,0.8105,1.5262
+Adventure,Action,0.1959,0.6228,1.3334
+Comedy+Romance,Drama,0.1356,0.9351,1.229
+Crime,Drama,0.1469,0.9286,1.2205
+Crime+Thriller,Drama,0.0716,0.9268,1.2182
+Romance,Drama,0.1657,0.9263,1.2175
+Comedy+Thriller,Drama,0.081,0.8269,1.0869
+Drama,Comedy,0.4218,0.5545,1.044
+Comedy,Drama,0.4218,0.7943,1.044
+Thriller,Drama,0.2976,0.7745,1.018

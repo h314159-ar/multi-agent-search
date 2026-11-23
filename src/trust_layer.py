@@ -153,7 +153,7 @@ def render_fact_references(draft: str, records: list[dict[str, Any]]) -> tuple[s
             # 已是百分数（如 SQL 直接查出 26.60），禁止再乘 100（R13 回归）。
             if operation == "percent":
                 try:
-                    if Decimal(str(fact["value"])) * 100 > 100:
+                    if fact.get("unit") != "ratio":
                         errors.append(f"{fact_id} 的值已是百分数，禁止叠加 percent 声明")
                         return match.group(0)
                 except InvalidOperation:
@@ -279,7 +279,7 @@ def _validate_direct_value_relations(rendered: str, catalog: dict[str, dict[str,
     text = _strip_list_markers(clean_text(rendered))
     for match in NUMBER_RE.finditer(text):
         token = match.group()
-        if token.endswith("%") or "." in token:
+        if token.endswith("%"):
             continue
         try:
             key = _key(token)
@@ -296,7 +296,14 @@ def _validate_direct_value_relations(rendered: str, catalog: dict[str, dict[str,
             continue
         fact = candidates[0]
         line, position = _local_context(text, match.start())
-        subject_hit = _nearest_subject_hit(line, position, catalog)
+        # 优先采用数值前的主体，也支持“片名：评分”。
+        prefix = re.split(r"[\n。；;]", text[:match.start()])[-1]
+        prior_hits = _subject_hits(prefix, catalog)
+        if prior_hits:
+            subject_hit = max(prior_hits, key=lambda hit: (hit[0] + len(hit[2]), len(hit[2])))
+            line, position = prefix, len(prefix)
+        else:
+            subject_hit = _nearest_subject_hit(line, position, catalog)
         if subject_hit:
             subject_start, subject, alias = subject_hit
             if subject != fact.get("subject"):
@@ -366,7 +373,8 @@ def audit_answer(answer: str, evidence_text: str, records: list[dict[str, Any]],
         target = _decimal(token)
         if token.endswith("%") and percent_declared:
             if any(_round_matches(value * 100, target, {max(-target.as_tuple().exponent, 0)})
-                   for value in source_values):
+                   for value in (_decimal(str(f["value"])) for f in catalog.values()
+                                 if f.get("unit") == "ratio")):
                 continue
         elif decimals and any(_round_matches(value, target, decimals) for value in source_values):
             continue
