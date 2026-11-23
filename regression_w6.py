@@ -11,11 +11,30 @@ r"""W6 · 10 题端到端回归测试。
 import asyncio
 import json
 import time
+from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 
 import pandas as pd
 
 import multi_agent as ma
+
+
+def must_variants(value: str) -> set[str]:
+    """must 事实的合法展示变体：原文 + 声明式舍入（如 0.4077 → 0.41）。"""
+    variants = {value}
+    try:
+        number = Decimal(value.replace("%", "").replace(",", ""))
+    except Exception:
+        return variants
+    for digits in (1, 2):
+        quantum = Decimal(1).scaleb(-digits)
+        variants.add(str(number.quantize(quantum, rounding=ROUND_HALF_UP)))
+    return variants
+
+
+def missing_musts(case: dict, final: str) -> list[str]:
+    return [x for x in case["must"]
+            if not any(v in final for v in must_variants(x))]
 
 OUT = Path(__file__).resolve().parent / "outputs" / "w6"
 OUT.mkdir(parents=True, exist_ok=True)
@@ -53,17 +72,23 @@ async def main():
         print(f"RAG 回退原因：{ma.kb.fallback_reason}")
 
     for case in CASES:
+        case_start = time.perf_counter()
         try:
             state = await ma.arun(case["question"])
-            actual_routes = set(state["routes"])
-            route_ok = case["routes"].issubset(actual_routes)
-            missing_facts = [x for x in case["must"] if x not in state["final"]]
+            planned_routes = set(state["routes"])
+            actual_routes = ma.invoked_routes(state["tool_records"])
+            successful_routes = ma.successful_routes(state["tool_records"])
+            # 计划路由不等于能力覆盖：必须实际调用并成功执行（空结果除外仍算成功执行）。
+            route_ok = case["routes"].issubset(successful_routes)
+            missing_facts = missing_musts(case, state["final"])
             passed = (route_ok and state["verdict"] == "PASS"
                       and state["hard_check"] == "PASS" and not missing_facts)
             row = {
                 "id": case["id"], "question": case["question"],
                 "expected_routes": "|".join(sorted(case["routes"])),
-                "actual_routes": "|".join(state["routes"]),
+                "planned_routes": "|".join(sorted(planned_routes)),
+                "actual_routes": "|".join(sorted(actual_routes)),
+                "successful_routes": "|".join(sorted(successful_routes)),
                 "route_ok": route_ok, "verdict": state["verdict"],
                 "hard_check": state["hard_check"],
                 "missing_facts": "|".join(missing_facts),
@@ -72,13 +97,17 @@ async def main():
             }
             full_logs.append(f"{case['id']} 问：{case['question']}\n"
                              + "\n".join(state["trace"])
-                             + f"\n最终回答（{state['verdict']}）：\n{state['final']}\n")
+                             + f"\n最终回答（{state['verdict']}）：\n{state['final']}\n"
+                             + (f"内部草稿（仅诊断）：\n{state['draft']}\n"
+                                if state["verdict"] == "FAIL" else ""))
         except Exception as exc:
             row = {
                 "id": case["id"], "question": case["question"],
                 "expected_routes": "|".join(sorted(case["routes"])),
-                "actual_routes": "", "route_ok": False, "verdict": "ERROR",
-                "hard_check": "ERROR", "missing_facts": "", "elapsed_seconds": 0,
+                "planned_routes": "", "actual_routes": "", "successful_routes": "",
+                "route_ok": False, "verdict": "ERROR",
+                "hard_check": "ERROR", "missing_facts": "",
+                "elapsed_seconds": round(time.perf_counter() - case_start, 3),
                 "passed": False, "final": "",
                 "error": f"{type(exc).__name__}: {exc}",
             }
@@ -98,6 +127,8 @@ async def main():
         "critic_pass": int((frame["verdict"] == "PASS").sum()),
         "hard_check_pass": int((frame["hard_check"] == "PASS").sum()),
         "route_pass": int(frame["route_ok"].sum()),
+        "error_count": int((frame["verdict"] == "ERROR").sum()),
+        "error_rate": round(float((frame["verdict"] == "ERROR").mean()), 4),
         "total_seconds": round(total_seconds, 3),
         "mean_seconds": round(float(frame["elapsed_seconds"].mean()), 3),
         "rag_backend": ma.kb.mode,
@@ -108,8 +139,8 @@ async def main():
         json.dump(summary, f, ensure_ascii=False, indent=2)
 
     print("\n=== W6 回归汇总 ===")
-    print(frame[["id", "actual_routes", "verdict", "hard_check",
-                 "elapsed_seconds", "passed"]].to_string(index=False))
+    print(frame[["id", "planned_routes", "actual_routes", "successful_routes",
+                 "verdict", "hard_check", "elapsed_seconds", "passed"]].to_string(index=False))
     print(f"\n通过 {passed_count}/{len(CASES)}（{summary['pass_rate']:.0%}） | "
           f"平均耗时 {summary['mean_seconds']:.2f}s | 总耗时 {total_seconds:.1f}s")
     if summary["failed_ids"]:

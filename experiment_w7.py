@@ -25,7 +25,7 @@ from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from langchain_core.tools import tool
 
 import multi_agent as ma
-from regression_w6 import CASES
+from regression_w6 import CASES, must_variants
 
 # W7 额外增加三道双分支题：原回归集只有 R10 能检验真实专家并行。
 EXTRA_CASES = [
@@ -86,8 +86,8 @@ def merge_update(state: dict, update: dict) -> None:
     for key, value in update.items():
         if key in ("evidences", "tool_evidences"):
             state[key].update(value)
-        elif key == "trace":
-            state["trace"].extend(value)
+        elif key in ("trace", "tool_records"):
+            state[key].extend(value)
         else:
             state[key] = value
 
@@ -110,7 +110,7 @@ async def run_single(question: str) -> dict:
     bound = ma.llm.bind_tools(SINGLE_TOOLS)
     tool_map = {item.name: item for item in SINGLE_TOOLS}
     tool_calls = []
-    raw_evidences = []
+    records = []
     answer = ""
 
     for _ in range(8):
@@ -122,10 +122,11 @@ async def run_single(question: str) -> dict:
         for call in response.tool_calls:
             args_text = json.dumps(call["args"], ensure_ascii=False)
             tool_calls.append(f"{call['name']}({args_text})")
-            result = await asyncio.to_thread(tool_map[call["name"]].invoke, call["args"])
-            result = str(result)
-            raw_evidences.append(f"【{call['name']}】\n{result}")
-            messages.append(ToolMessage(content=result, tool_call_id=call["id"]))
+            result = await asyncio.to_thread(ma.execute_tool, call["name"], call["args"], tool_map)
+            record = result.to_record()
+            records.append(record)
+            tool_calls[-1] += f" -> {result.status}"
+            messages.append(ToolMessage(content=result.text, tool_call_id=call["id"]))
     else:
         response = await ma.llm.ainvoke(messages + [HumanMessage(content=(
             "工具调用轮次已用尽。请只依据已有工具结果，立即给出最终回答；"
@@ -134,9 +135,12 @@ async def run_single(question: str) -> dict:
 
     return {
         "answer": answer,
-        "evidence_text": "\n\n".join(raw_evidences),
+        "evidence_text": "\n\n".join(ma.usable_raw_evidences(records)),
         "tool_calls": tool_calls,
-        "actual_routes": routes_from_tools({c.split("(", 1)[0] for c in tool_calls}),
+        "tool_records": records,
+        "planned_routes": set(),
+        "actual_routes": ma.invoked_routes(records),
+        "successful_routes": ma.successful_routes(records),
         "verdict": "N/A（无内部 Critic）",
         "revision_count": 0,
         "trace": [f"[单 Agent] 工具调用：{'; '.join(tool_calls) or '无'}"],
@@ -174,9 +178,15 @@ async def run_multi(question: str, parallel: bool) -> dict:
             f"【{key}】\n{value}" for key, value in state["tool_evidences"].items()
         ),
         "tool_calls": [line for line in state["trace"] if "工具调用" in line],
-        "actual_routes": set(state["routes"]),
+        "tool_records": state["tool_records"],
+        "planned_routes": set(state["routes"]),
+        "actual_routes": ma.invoked_routes(state["tool_records"]),
+        "successful_routes": ma.successful_routes(state["tool_records"]),
         "verdict": state["verdict"],
         "revision_count": state["revision_count"],
+        # 原始草稿含 [F###:round:N] 等声明式引用，外部审计以它为对象，
+        # 避免对渲染后纯数字二次审计时丢失舍入/百分比声明上下文。
+        "draft": state["draft"],
         "trace": state["trace"],
         "elapsed_seconds": time.perf_counter() - start,
     }
@@ -212,6 +222,7 @@ async def external_judge(question: str, answer: str, evidence: str) -> tuple[str
 
 async def evaluate_case(case: dict, mode: str) -> tuple[dict, str]:
     question = case["question"]
+    case_start = time.perf_counter()
     print(f"\n[{case['id']} | {MODE_LABELS[mode]}] {question}")
     try:
         if mode == "single":
@@ -219,24 +230,31 @@ async def evaluate_case(case: dict, mode: str) -> tuple[dict, str]:
         else:
             result = await run_multi(question, parallel=(mode == "multi_parallel"))
 
-        # 用户问题也是合法来源：重复题目中的阈值/年份不应被判为模型编造。
-        hard_ok, missing_numbers, number_count = ma.hard_validate_numbers(
-            result["answer"].replace("**", ""),
-            question + "\n" + result["evidence_text"].replace("**", "")
-        )
-        answer_without_commas = result["answer"].replace(",", "")
+        # 与正式问答共用同一套原始证据、Fact 关系和声明式格式校验。
+        # 多 Agent 模式审计原始草稿（含声明式引用）；单 Agent 无草稿则审最终答案。
+        audit_target = result.get("draft") or result["answer"]
+        audit = ma.audit_answer(audit_target, result["evidence_text"],
+                                result["tool_records"], question)
+        hard_ok = audit["ok"]
+        missing_numbers = audit["missing_numbers"] + audit["errors"]
+        number_count = audit["checked_numbers"]
+        rendered_answer = audit["rendered_answer"]
+        answer_without_commas = rendered_answer.replace(",", "")
         missing_facts = [fact for fact in case["must"]
-                         if fact not in result["answer"] and fact not in answer_without_commas]
-        capability_ok = case["routes"].issubset(result["actual_routes"])
+                         if not any(v in rendered_answer or v in answer_without_commas
+                                    for v in must_variants(fact))]
+        capability_ok = case["routes"].issubset(result["successful_routes"])
         objective_pass = capability_ok and hard_ok and not missing_facts
         judge_verdict, judge_comments = await external_judge(
-            question, result["answer"], result["evidence_text"]
+            question, rendered_answer, result["evidence_text"]
         )
         overall_pass = objective_pass and judge_verdict == "PASS"
         row = {
             "case_id": case["id"], "question": question, "mode": mode,
             "expected_routes": "|".join(sorted(case["routes"])),
+            "planned_routes": "|".join(sorted(result["planned_routes"])),
             "actual_routes": "|".join(sorted(result["actual_routes"])),
+            "successful_routes": "|".join(sorted(result["successful_routes"])),
             "capability_ok": capability_ok,
             "internal_verdict": result["verdict"],
             "hard_check": "PASS" if hard_ok else "FAIL",
@@ -249,14 +267,14 @@ async def evaluate_case(case: dict, mode: str) -> tuple[dict, str]:
             "overall_pass": overall_pass,
             "elapsed_seconds": round(result["elapsed_seconds"], 3),
             "revision_count": result["revision_count"],
-            "answer": result["answer"],
+            "answer": rendered_answer,
             "error": "",
         }
         log = (
             f"{case['id']} | {MODE_LABELS[mode]}\n问：{question}\n"
             + "\n".join(result["trace"])
             + f"\n\n证据：\n{result['evidence_text']}"
-            + f"\n\n最终回答：\n{result['answer']}"
+            + f"\n\n最终回答：\n{rendered_answer}"
             + f"\n\n硬校验：{row['hard_check']} | 外部评审：{judge_verdict} | "
               f"{judge_comments}\n耗时：{row['elapsed_seconds']:.3f}s\n"
         )
@@ -272,13 +290,14 @@ async def evaluate_case(case: dict, mode: str) -> tuple[dict, str]:
         row = {
             "case_id": case["id"], "question": question, "mode": mode,
             "expected_routes": "|".join(sorted(case["routes"])),
-            "actual_routes": "", "capability_ok": False,
+            "planned_routes": "", "actual_routes": "", "successful_routes": "",
+            "capability_ok": False,
             "internal_verdict": "ERROR", "hard_check": "ERROR",
             "checked_numbers": 0, "missing_numbers": "", "missing_facts": "",
             "judge_verdict": "ERROR", "judge_comments": "",
             "objective_pass": False, "overall_pass": False,
-            "elapsed_seconds": 0.0, "revision_count": 0, "answer": "",
-            "error": error,
+            "elapsed_seconds": round(time.perf_counter() - case_start, 3),
+            "revision_count": 0, "answer": "", "error": error,
         }
         print("  ERROR：" + error)
         return row, f"{case['id']} | {MODE_LABELS[mode]} | ERROR：{error}\n"
@@ -301,6 +320,8 @@ def summarize(frame: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
             "overall_pass_rate": round(float(group["overall_pass"].mean()), 4),
             "capability_pass": int(group["capability_ok"].sum()),
             "hard_check_pass": int((group["hard_check"] == "PASS").sum()),
+            "error_count": int(group["error"].astype(bool).sum()),
+            "error_rate": round(float(group["error"].astype(bool).mean()), 4),
             "mean_seconds": round(float(group["elapsed_seconds"].mean()), 3),
             "median_seconds": round(float(group["elapsed_seconds"].median()), 3),
             "total_seconds": round(float(group["elapsed_seconds"].sum()), 3),
@@ -308,7 +329,8 @@ def summarize(frame: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
         })
     summary_frame = pd.DataFrame(summaries)
 
-    timing = frame.pivot(index="case_id", columns="mode", values="elapsed_seconds")
+    successful_frame = frame[frame["error"].fillna("").eq("")]
+    timing = successful_frame.pivot(index="case_id", columns="mode", values="elapsed_seconds")
     paired = {}
     if {"multi_serial", "multi_parallel"}.issubset(timing.columns):
         valid = timing[(timing["multi_serial"] > 0) & (timing["multi_parallel"] > 0)].copy()
@@ -331,9 +353,10 @@ def summarize(frame: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
                 / valid["multi_serial"].sum() * 100
             ), 2),
         }
-        # 只有实际扇出多个专家的题，才能把差异主要归因于物理并行。
-        route_counts = (frame[frame["mode"] == "multi_serial"]
-                        .set_index("case_id")["expected_routes"].str.count(r"\|") + 1)
+        # 只有实际成功取得至少两路证据的题，才把差异主要归因于物理并行。
+        route_counts = (successful_frame[successful_frame["mode"] == "multi_serial"]
+                        .set_index("case_id")["successful_routes"]
+                        .map(lambda value: 0 if not value else len(str(value).split("|"))))
         dual_ids = route_counts[route_counts >= 2].index
         dual = valid.loc[valid.index.intersection(dual_ids)]
         if not dual.empty:
@@ -384,9 +407,10 @@ async def main() -> None:
         "rag_backend": ma.kb.mode,
         "wall_seconds_including_judges": round(time.perf_counter() - suite_start, 3),
         "acceptance": {
-            "objective_pass": "必需工具/路由覆盖 + 数字硬校验通过 + 关键事实命中；题目数字属于合法来源",
+            "objective_pass": "成功执行所需工具 + 原始证据/Fact 关系/声明式格式检查通过 + 关键事实命中",
             "overall_pass": "objective_pass + 同一外部 LLM 评审 PASS",
-            "elapsed_seconds": "不含外部评审耗时",
+            "capability_ok": "expected_routes ⊆ successful_routes；planned/invoked 不计入覆盖",
+            "elapsed_seconds": "不含外部评审耗时；异常样本保留真实耗时",
         },
         "limitations": [
             "每题每模式运行一次，耗时受 API 波动影响，不做统计显著性推断",

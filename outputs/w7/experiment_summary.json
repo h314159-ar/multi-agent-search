@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-22T22:24:30+08:00",
+  "generated_at": "2026-11-23T19:05:28+08:00",
   "model": "deepseek-chat",
   "temperature": 0,
   "case_ids": [
@@ -23,11 +23,12 @@
     "multi_parallel"
   ],
   "rag_backend": "hybrid",
-  "wall_seconds_including_judges": 268.11,
+  "wall_seconds_including_judges": 318.379,
   "acceptance": {
-    "objective_pass": "必需工具/路由覆盖 + 原始工具结果数字硬校验通过 + 关键事实命中；题目数字属于合法来源",
+    "objective_pass": "成功执行所需工具 + 原始证据/Fact 关系/声明式格式检查通过 + 关键事实命中",
     "overall_pass": "objective_pass + 同一外部 LLM 评审 PASS",
-    "elapsed_seconds": "不含外部评审耗时"
+    "capability_ok": "expected_routes ⊆ successful_routes；planned/invoked 不计入覆盖",
+    "elapsed_seconds": "不含外部评审耗时；异常样本保留真实耗时"
   },
   "limitations": [
     "每题每模式运行一次，耗时受 API 波动影响，不做统计显著性推断",
@@ -35,20 +36,22 @@
   ],
   "paired_parallel": {
     "paired_cases": 13,
-    "parallel_faster_cases": 11,
-    "mean_speedup_per_case": 1.293,
-    "ratio_of_mean_times": 1.353,
-    "mean_time_reduction_pct": 16.95,
-    "aggregate_time_reduction_pct": 26.07,
+    "parallel_faster_cases": 9,
+    "mean_speedup_per_case": 1.21,
+    "ratio_of_mean_times": 1.149,
+    "mean_time_reduction_pct": 11.41,
+    "aggregate_time_reduction_pct": 13.0,
     "multi_route_cases": [
+      "R05",
+      "R06",
       "R10",
       "R11",
       "R12",
       "R13"
     ],
-    "multi_route_parallel_faster_cases": 4,
-    "multi_route_mean_speedup": 1.464,
-    "multi_route_ratio_of_mean_times": 1.416,
-    "multi_route_aggregate_time_reduction_pct": 29.38
+    "multi_route_parallel_faster_cases": 5,
+    "multi_route_mean_speedup": 1.292,
+    "multi_route_ratio_of_mean_times": 1.211,
+    "multi_route_aggregate_time_reduction_pct": 17.4
   }
 }

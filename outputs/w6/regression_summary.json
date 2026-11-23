@@ -1,13 +1,17 @@
 {
   "total": 10,
-  "passed": 10,
-  "pass_rate": 1.0,
-  "critic_pass": 10,
+  "passed": 9,
+  "pass_rate": 0.9,
+  "critic_pass": 9,
   "hard_check_pass": 10,
   "route_pass": 10,
-  "total_seconds": 77.085,
-  "mean_seconds": 7.708,
+  "error_count": 0,
+  "error_rate": 0.0,
+  "total_seconds": 77.191,
+  "mean_seconds": 7.719,
   "rag_backend": "hybrid",
   "rag_fallback_reason": "",
-  "failed_ids": []
+  "failed_ids": [
+    "R06"
+  ]
 }

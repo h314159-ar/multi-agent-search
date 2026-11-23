@@ -3,8 +3,8 @@
     "mining",
     "rag"
   ],
-  "sequential_seconds": 12.431,
-  "parallel_seconds": 6.175,
-  "speedup": 2.013,
-  "time_reduction_pct": 50.3
+  "sequential_seconds": 10.682,
+  "parallel_seconds": 6.591,
+  "speedup": 1.621,
+  "time_reduction_pct": 38.3
 }
