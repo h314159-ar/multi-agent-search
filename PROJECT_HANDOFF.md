@@ -2,7 +2,7 @@
 
 > 交接日期：2026-11-23（v2：并入 W7 重复实验与 R06 稳定性实验）  
 > 代码仓库：`C:\Users\LEGION\PycharmProjects\multi-agent-search`  
-> 审阅基准提交：`ae05260`（其基于 `7c2eaf2` 信任层改造，`7c2eaf2` 又基于 `5bfc922` W7 对比实验）  
+> 审阅基准提交：`2dfe25d`（其基于 `ae05260` 交接文档 v1，再往下是 `7c2eaf2` 信任层改造与 `5bfc922` W7 对比实验）  
 > 上一版文档见 git 历史中的 `ae05260:PROJECT_HANDOFF.md`  
 > 适用对象：下一位负责代码审阅、继续开发或课程答辩准备的 AI/开发者
 
